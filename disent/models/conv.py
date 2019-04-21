@@ -2,7 +2,8 @@ import numpy as np
 import torch
 import torch.nn as nn
 
-from disent.connectors import MLPConnector, StochasticConnector
+from disent.connectors import (
+    BernoulliWrappingConnector, MLPConnector, StochasticConnector)
 from disent.modules import StochasticModule
 from . import BaseModel, register_model
 
@@ -46,7 +47,23 @@ class ConvVAE(BaseModel):
             args.batch_norm)
 
         prior = StochasticModule(args.code_size, 'normal', args.learnable_prior)
-        return ConvVAE(encoder, decoder, prior)
+        return cls(encoder, decoder, prior)
+
+    def forward(self, samples):
+        images = samples['image']
+        posterior = self.encoder(images)
+        if self.training:
+            z = posterior.rsample()
+        else:
+            z = posterior.mean
+        prior = self.prior(z)
+        x = self.decoder(z)
+        return {
+            'x': x;
+            'posterior': posterior,
+            'prior': prior,
+            'z': z
+        }
 
 
 class ConvEncoder(nn.Module):
@@ -136,14 +153,16 @@ class ConvDecoder(nn.Module):
 
         self._in_sizes = in_sizes
         in_channels = in_sizes[0]
-        for conv in convolutions:
+        for i, conv in enumerate(convolutions):
             out_channels, kernel_size, stride, padding = conv
             self.convs.append(
                 nn.ConvTranspose2d(
                     in_channels, out_channels, kernel_size, stride, padding))
-            self.bns.append(
-                nn.BatchNorm2d(out_channels))
-            in_channels = out_channels
+            if i < len(convolutions) - 1:
+                self.bns.append(
+                    nn.BatchNorm2d(out_channels))
+                in_channels = out_channels
+        self.bernoulli_wrapper = BernoulliWrappingConnector()
 
     def forward(self, inputs):
         outputs = inputs    # size (batch_size, code_size)
@@ -151,13 +170,15 @@ class ConvDecoder(nn.Module):
             outputs = fc(outputs)
 
         outputs.view(-1, *self._in_sizes)
-        for conv, bn in zip(self.convs, self.bns):
+        for conv, bn in zip(self.convs[:-1], self.bns):
             outputs = conv(outputs)
             if self._use_bn:
                 outputs = bn(outputs)
             outputs = torch.relu(outputs)
-        return outputs
-    
+        # no batch norm or activation on the final deconvolution layer
+        outputs = self.convs[-1](outputs)
+        return self.bernoulli_wrapper(outputs)
+
 
 def base_architecture(args):
     conv_layers = eval(getattr(args, 'conv_layers', '((32, 4, 2, 1),) * 2 + ((64, 4, 2, 1),) * 2'))
