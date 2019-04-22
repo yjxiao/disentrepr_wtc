@@ -13,7 +13,7 @@ class VAETask(BaseTask):
                             help='dataset name to load')
         parser.add_argument('--kld-weight', default=1, type=float,
                             help='weight to the kld term')
-
+        
     def build_criterion(self, args):
         return NegativeELBOLoss(args)
     
@@ -26,6 +26,7 @@ class VAETask(BaseTask):
         model.train()
         (rec, kld), batch_size, logging_output = criterion(model, sample)
         loss = rec + optimizer.get_hparam('kld_weight') * kld
+        logging_output['loss'] = loss.item()
         if ignore_grad:
             loss *= 0
         return loss, batch_size, logging_output
@@ -35,4 +36,5 @@ class VAETask(BaseTask):
         with torch.no_grad():
             (rec, kld), batch_size, logging_output = criterion(model, sample)
         loss = rec + self.args.kld_weight * kld
+        logging_output['loss'] = loss.item()
         return loss, batch_size, logging_output

@@ -9,6 +9,10 @@ class FactorVAELoss(_Loss):
         super().__init__()
         self.args = args
 
+    @property
+    def loss_components(self):
+        return ['rec', 'kld', 'tc', 'adv_loss']
+    
     def forward(self, model, sample):
         outputs = model['main'](sample)
         batch_size = sample['batch_size']

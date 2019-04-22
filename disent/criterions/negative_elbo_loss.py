@@ -8,6 +8,10 @@ class NegativeELBOLoss(_Loss):
         super().__init__()
         self.args = args
 
+    @property
+    def loss_components(self):
+        return ['kld', 'rec']
+    
     def forward(self, model, sample):
         outputs = model(sample)
         batch_size = sample['batch_size']

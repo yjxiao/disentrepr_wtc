@@ -27,6 +27,7 @@ class TCVAETask(BaseTask):
         (rec, kld, tc), batch_size, logging_output = criterion(model, sample)
         loss = rec + optimizer.get_hparam('kld_weight') * kld + \
                optimizer.get_hparam('beta') * tc
+        logging_output['loss'] = loss.item()
         if ignore_grad:
             loss *= 0
         return loss, batch_size, logging_output
@@ -36,4 +37,5 @@ class TCVAETask(BaseTask):
         with torch.no_grad():
             (rec, kld, tc), batch_size, logging_output = criterion(model, sample)
         loss = rec + kld + self.args.beta * tc
+        logging_output['loss'] = loss.item()        
         return loss, batch_size, logging_output

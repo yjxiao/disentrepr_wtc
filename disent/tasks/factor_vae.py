@@ -33,6 +33,7 @@ class FactorVAETask(BaseTask):
         (rec, kld, tc, adv_loss), batch_size, logging_output = criterion(model, sample)
         loss = rec + optimizer.get_hparam('kld_weight') * kld + \
                optimizer.get_hparam('gamma') * tc
+        logging_output['loss'] = loss.item()
         if ignore_grad:
             loss *= 0
             adv_loss *= 0
@@ -47,6 +48,7 @@ class FactorVAETask(BaseTask):
         with torch.no_grad():
             (rec, kld, tc, adv_loss), batch_size, logging_output = criterion(model, sample)
         loss = rec + kld + self.args.gamma * tc
+        logging_output['loss'] = loss.item()        
         losses = {
             'main': loss,
             'adversarial': adv_loss,
