@@ -11,8 +11,6 @@ from disent.trainer import Trainer
 
 
 def main(args):
-    print(args)
-
     if torch.cuda.is_available() and not args.cpu:
         torch.cuda.set_device(args.device_id)
     torch.manual_seed(args.seed)
@@ -26,6 +24,7 @@ def main(args):
     # build model and criterion
     model = task.build_model(args)
     criterion = task.build_criterion(args)
+    print(args)
     print(model)
     print('| num. model params: {} (num. trained: {})'.format(
         sum(p.numel() for p in model.parameters()),
@@ -55,7 +54,8 @@ def main(args):
         if epoch_iter.epoch % args.validate_interval == 0 and not args.no_validate:
             valid_loss = validate(args, trainer, task, epoch_iter, 'valid')
 
-        lr = trainer.lr_step(epoch_iter.epoch, valid_loss)
+        trainer.lr_step(epoch_iter.epoch, valid_loss)
+        lr = trainer.get_lr()
 
         if epoch_iter.epoch % args.save_interval == 0:
             save_checkpoint(args, trainer, epoch_iter, valid_loss)
@@ -101,6 +101,8 @@ def get_training_stats(trainer):
     stats['clip'] = trainer.get_meter('clip')
     for hparam in trainer.task.hparams:
         stats[hparam] = trainer.get_hparam(hparam)
+    for comp in trainer.criterion.loss_components:
+        stats[comp] = trainer.get_meter('train_' + comp)
     stats['wall'] = round(trainer.get_meter('wall').elapsed_time)
     stats['train_wall'] = trainer.get_meter('train_wall')
     return stats
@@ -135,7 +137,8 @@ def get_valid_stats(trainer):
     stats = OrderedDict()
     stats['loss'] = trainer.get_meter('valid_loss')
     stats['num_updates'] = trainer.get_num_updates()
-
+    for comp in trainer.criterion.loss_components:
+        stats[comp] = trainer.get_meter('train_' + comp)
     if hasattr(save_checkpoint, 'best'):
         stats['best_loss'] = min(save_checkpoint.best, stats['loss'].avg)
     return stats
@@ -198,6 +201,7 @@ def save_checkpoint(args, trainer, epoch_iter, val_loss):
 
 
 def load_checkpoint(args, trainer, epoch_iter):
+    os.makedirs(args.save_dir, exist_ok=True)
     if os.path.isabs(args.restore_file):
         checkpoint_path = args.restore_file
     else:

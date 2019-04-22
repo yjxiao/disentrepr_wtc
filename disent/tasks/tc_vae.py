@@ -15,7 +15,7 @@ class TCVAETask(BaseTask):
                             help='data directory')
         parser.add_argument('--dataset', default='dsprites', type=str,
                             help='dataset name to load')
-        parser.add_argument('--beta', default=9, type=eval_str_list,
+        parser.add_argument('--beta', default='9', type=eval_str_list,
                             help='extra weight to the tc component')
 
     def build_criterion(self, args):

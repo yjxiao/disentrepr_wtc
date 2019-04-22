@@ -97,7 +97,7 @@ class Trainer(object):
 
     def save_checkpoint(self, filename, extra_state):
         extra_state['train_meters'] = self.meters
-        save_state(
+        utils.save_state(
             filename, self.args, self.model.state_dict(),
             self.optimizers, self.lr_schedulers, self.hparam_schedulers,
             self._num_updates, self._optim_history, extra_state)
@@ -105,7 +105,7 @@ class Trainer(object):
     def load_checkpoint(self, filename, reset_optimizers=False,
                         reset_lr_schedulers=False,
                         optimizer_overrides=None):
-        extra_state, self._optim_history, last_optim_state = load_model_state(
+        extra_state, self._optim_history, last_optim_state = utils.load_model_state(
             filename, self.model)
         if last_optim_state is not None and not reset_optimizers:
             self._build_optimizers()
@@ -230,7 +230,7 @@ class Trainer(object):
     def get_lr(self, key='main'):
         return self.get_optimizer(key).get_lr()
 
-    def hparam_step(self, epoch, val_loss, hparam=None):
+    def hparam_step(self, epoch, val_loss=None, hparam=None):
         if hparam is None:
             for hparam in self.hparam_schedulers:
                 self.get_hparam_scheduler(hparam).step(epoch, val_loss)

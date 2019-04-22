@@ -1,12 +1,14 @@
 import torch.nn as nn
 
 from disent.connectors import MLPConnector
+from disent.utils import getattr_with_default
 from . import BaseModel, register_model
 
 
 @register_model('mlp_discriminator')
 class MLPDiscriminator(BaseModel):
     def __init__(self, layers):
+        super().__init__()
         self.layers = layers
 
     @staticmethod
@@ -22,7 +24,7 @@ class MLPDiscriminator(BaseModel):
     def build_model(cls, args):
         base_architecture(args)
 
-        layers = nn.Sequential()
+        layers = []
         input_size = args.discriminator_input_size
         for output_size in args.discriminator_layers:
             layers.append(
@@ -33,7 +35,7 @@ class MLPDiscriminator(BaseModel):
 
         layers.append(nn.Linear(input_size, 2))
         layers.append(nn.LogSoftmax(dim=1))
-        return cls(layers)
+        return cls(nn.Sequential(*layers))
 
     def forward(self, inputs):
         # inputs size: (batch_size, input_size)
