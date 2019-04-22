@@ -8,7 +8,11 @@ MODEL_REGISTRY = {}
 
 
 def build_model(args):
-    return MODEL_REGISTRY[args.arch].build_model(args)
+    return MODEL_REGISTRY[args.vae_arch].build_model(args)
+
+
+def build_adversarial(args):
+    return MODEL_REGISTRY[args.adversarial_arch].build_model(args)
 
 
 def register_model(name):

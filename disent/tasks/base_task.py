@@ -7,7 +7,10 @@ class BaseTask(object):
 
     @staticmethod
     def add_args(parser):
-        pass
+        parser.add_argument('--datadir', default='data/', type=str,
+                            help='data directory')
+        parser.add_argument('--dataset', default='dsprites', type=str,
+                            help='dataset name to load')
 
     def __init__(self, args):
         self.args = args

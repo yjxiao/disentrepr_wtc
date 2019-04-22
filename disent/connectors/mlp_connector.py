@@ -12,7 +12,7 @@ class MLPConnector(BaseConnector):
         super().__init__(output_size)
         if nonlinearity in ['tanh', 'relu']:
             self.activation_func = getattr(torch, nonlinearity)
-        elif nonlinearity in ['softplus']:
+        elif nonlinearity in ['softplus', 'leaky_relu']:
             self.activation_func = getattr(F, nonlinearity)
         elif nonlinearity == 'none' or nonlinearity is None:
             self.activation_func = lambda x: x

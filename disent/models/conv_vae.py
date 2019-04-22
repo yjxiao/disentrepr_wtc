@@ -8,7 +8,7 @@ from disent.modules import StochasticModule
 from . import BaseModel, register_model
 
 
-@register_model('conv')
+@register_model('conv_vae')
 class ConvVAE(BaseModel):
     def __init__(self, encoder, decoder, prior):
         super().__init__()
