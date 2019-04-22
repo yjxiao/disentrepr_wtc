@@ -5,6 +5,15 @@ from . import BaseTask, register_task
 @register_task('tc_vae')
 class TCVAETask(BaseTask):
 
+    @staticmethod
+    def add_args(parser):
+        parser.add_argument('--datadir', default='data/', type=str,
+                            help='data directory')
+        parser.add_argument('--dataset', default='dsprites', type=str,
+                            help='dataset name to load')
+        parser.add_argument('--beta', default=9, type=float,
+                            help='extra weight to the tc component')
+        
     def build_criterion(self, args):
         return TCVAELoss(args)
     
@@ -16,7 +25,8 @@ class TCVAETask(BaseTask):
         # forward pass and handles kld_weight
         model.train()
         (rec, kld, tc), batch_size, logging_output = criterion(model, sample)
-        loss = rec + optimizer.kld_weight * kld + optimizer.beta * tc
+        loss = rec + optimizer.get_hparam('kld_weight') * kld + \
+               optimizer.get_hparam('beta') * tc
         if ignore_grad:
             loss *= 0
         return loss, batch_size, logging_output
@@ -25,5 +35,5 @@ class TCVAETask(BaseTask):
         model.eval()
         with torch.no_grad():
             (rec, kld, tc), batch_size, logging_output = criterion(model, sample)
-        loss = rec + kld + args.beta * tc
+        loss = rec + kld + self.args.beta * tc
         return loss, batch_size, logging_output

@@ -5,6 +5,15 @@ from . import BaseTask, register_task
 @register_task('vae')
 class VAETask(BaseTask):
 
+    @staticmethod
+    def add_args(parser):
+        parser.add_argument('--datadir', default='data/', type=str,
+                            help='data directory')
+        parser.add_argument('--dataset', default='dsprites', type=str,
+                            help='dataset name to load')
+        parser.add_argument('--kld-weight', default=1, type=float,
+                            help='weight to the kld term')
+
     def build_criterion(self, args):
         return NegativeELBOLoss(args)
     
@@ -16,7 +25,7 @@ class VAETask(BaseTask):
         # forward pass and handles kld_weight
         model.train()
         (rec, kld), batch_size, logging_output = criterion(model, sample)
-        loss = rec + optimizer.kld_weight * kld
+        loss = rec + optimizer.get_hparam('kld_weight') * kld
         if ignore_grad:
             loss *= 0
         return loss, batch_size, logging_output
@@ -25,5 +34,5 @@ class VAETask(BaseTask):
         model.eval()
         with torch.no_grad():
             (rec, kld), batch_size, logging_output = criterion(model, sample)
-        loss = rec + kld
+        loss = rec + self.args.kld_weight * kld
         return loss, batch_size, logging_output
