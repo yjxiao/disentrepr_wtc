@@ -10,8 +10,8 @@ class BaseHParamScheduler(object):
         self.optimizer = optimizer
         self.best = None
         self.hparam = hparam    # this is a string representing the hyper-param
-        self.value = None       # this stores the current value of hparam
-
+        self.value = None
+        
     @staticmethod
     def add_args(parser):
         """Add arguments to the parser for this LR scheduler."""

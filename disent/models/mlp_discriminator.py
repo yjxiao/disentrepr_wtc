@@ -42,6 +42,9 @@ class MLPDiscriminator(BaseModel):
 
 
 def base_architecture(args):
-    args.discriminator_input_size = getattr(args, 'discriminator_input_size', args.code_size)
-    args.discriminator_layers = eval(getattr(args, 'discriminator_layers', '(1000,) * 6'))
-    args.discriminator_nonlinearity = getattr(args, 'discriminator_nonlinearity', 'leaky_relu')
+    args.discriminator_input_size = getattr_with_default(
+        args, 'discriminator_input_size', args.code_size)
+    args.discriminator_layers = eval(
+        getattr_with_default(args, 'discriminator_layers', '(1000,) * 6'))
+    args.discriminator_nonlinearity = getattr_with_default(
+        args, 'discriminator_nonlinearity', 'leaky_relu')

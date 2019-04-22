@@ -7,7 +7,7 @@ class BaseTask(object):
 
     @staticmethod
     def add_args(parser):
-        parser.add_argument('--datadir', default='data/', type=str,
+        parser.add_argument('--data-dir', default='data/', type=str,
                             help='data directory')
         parser.add_argument('--dataset', default='dsprites', type=str,
                             help='dataset name to load')
@@ -20,7 +20,7 @@ class BaseTask(object):
         return cls(args)
 
     def load_dataset(self):
-        self.dataset = build_dataset(args, True)
+        self.dataset = build_dataset(self.args, True)
         print('| {} {} examples'.format(
             self.args.dataset, len(self.dataset)))
 
@@ -28,7 +28,7 @@ class BaseTask(object):
         with data_utils.numpy_seed(seed):
             indices = dataset.ordered_indices()
 
-        data_utils.batch_sampler(indices, batch_size=batch_size)
+        batch_sampler = data_utils.batch_sampler(indices, batch_size=batch_size)
         return EpochBatchIterator(
             dataset=dataset,
             collate_fn=dataset.collater,

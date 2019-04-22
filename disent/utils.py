@@ -1,8 +1,27 @@
 from collections import OrderedDict
 import os
+import re
 
 import torch
 from torch.serialization import default_restore_location
+
+
+def checkpoint_paths(path, pattern=r'checkpoint(\d+)\.pt'):
+    """Retrieves all checkpoints found in `path` directory.
+    Checkpoints are identified by matching filename to the specified pattern. If
+    the pattern contains groups, the result will be sorted by the first group in
+    descending order.
+    """
+    pt_regexp = re.compile(pattern)
+    files = os.listdir(path)
+
+    entries = []
+    for i, f in enumerate(files):
+        m = pt_regexp.fullmatch(f)
+        if m is not None:
+            idx = int(m.group(1)) if len(m.groups()) > 0 else i
+            entries.append((idx, m.group(0)))
+    return [os.path.join(path, x[1]) for x in sorted(entries, reverse=True)]
 
 
 def convert_state_dict_type(state_dict, ttype=torch.FloatTensor):
@@ -17,6 +36,25 @@ def convert_state_dict_type(state_dict, ttype=torch.FloatTensor):
         return state_dict.type(ttype)
     else:
         return state_dict
+
+
+def eval_str_list(x, type=float):
+    if x is None:
+        return None
+    if isinstance(x, str):
+        x = eval(x)
+    try:
+        return list(map(type, x))
+    except TypeError:
+        return [type(x)]
+
+
+def getattr_with_default(args, attr, default):
+    value = getattr(args, attr, default)
+    if value is None:
+        value = default
+
+    return value
 
 
 def load_model_state(filename, model):

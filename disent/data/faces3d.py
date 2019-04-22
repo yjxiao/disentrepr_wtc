@@ -8,7 +8,8 @@ from . import VisionDataset, register_dataset
 
 @register_dataset('faces3d')
 class Faces3D(VisionDataset):
-
+    in_channels = 1
+    
     def _load_data(self):
         filepath = os.path.join(self.root, 'basel_face_renders.pth')
         images = torch.load(filepath).float().div(255)

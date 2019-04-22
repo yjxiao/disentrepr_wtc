@@ -1,19 +1,23 @@
+import torch
+
 from disent.criterions import TCVAELoss
+from disent.utils import eval_str_list
 from . import BaseTask, register_task
 
 
 @register_task('tc_vae')
 class TCVAETask(BaseTask):
-
+    hparams = ('kld_weight', 'beta')
+    
     @staticmethod
     def add_args(parser):
-        parser.add_argument('--datadir', default='data/', type=str,
+        parser.add_argument('--data-dir', default='data/', type=str,
                             help='data directory')
         parser.add_argument('--dataset', default='dsprites', type=str,
                             help='dataset name to load')
-        parser.add_argument('--beta', default=9, type=float,
+        parser.add_argument('--beta', default=9, type=eval_str_list,
                             help='extra weight to the tc component')
-        
+
     def build_criterion(self, args):
         return TCVAELoss(args)
     

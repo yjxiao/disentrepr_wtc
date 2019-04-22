@@ -1,3 +1,4 @@
+from disent.utils import getattr_with_default
 from . import BaseHParamScheduler, register_hparam_scheduler
 
 
@@ -5,17 +6,15 @@ from . import BaseHParamScheduler, register_hparam_scheduler
 class FixedSchedule(BaseHParamScheduler):
     def __init__(self, args, hparam, optimizer):
         super().__init__(args, hparam, optimizer)
-
         wu_attr = 'warmup_updates_{}'.format(hparam)
         self.warmup_updates = getattr(args, wu_attr, 0)
         setattr(args, wu_attr, self.warmup_updates)
 
-        self.value = getattr(args, hparam)[0]
-
-        if warmup_updates > 0:
+        if self.warmup_updates > 0:
             self.warmup_factor = 1. / warmup_updates
         else:
             self.warmup_factor = 1
+        self.step(0)
 
     @staticmethod
     def add_args(parser, hparam):
@@ -25,7 +24,7 @@ class FixedSchedule(BaseHParamScheduler):
                             help='warmup the hparam linearly for the first N updates')
 
     def get_next_value(self, epoch):
-        values = getattr(self.args, self.hparam)
+        values = getattr_with_default(self.args, self.hparam, [1.])
         return values[min(epoch, len(values) - 1)]
 
     def step(self, epoch, val_loss=None):

@@ -8,7 +8,7 @@ class VisionDataset(torch.utils.data.Dataset):
 
     @classmethod
     def build_dataset(cls, args, shuffle=False):
-        root = os.path.join(args.datadir, args.dataset)
+        root = os.path.join(args.data_dir, args.dataset)
         return cls(root, shuffle)
 
     def __init__(self, root, shuffle=False):

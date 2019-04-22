@@ -1,19 +1,23 @@
+import torch
+
 from disent.criterions import NegativeELBOLoss
+from disent.utils import eval_str_list
 from . import BaseTask, register_task
 
 
 @register_task('vae')
 class VAETask(BaseTask):
+    hparams = ('kld_weight',)
 
     @staticmethod
     def add_args(parser):
-        parser.add_argument('--datadir', default='data/', type=str,
+        parser.add_argument('--data-dir', default='data/', type=str,
                             help='data directory')
         parser.add_argument('--dataset', default='dsprites', type=str,
                             help='dataset name to load')
-        parser.add_argument('--kld-weight', default=1, type=float,
+        parser.add_argument('--kld-weight', default='1', type=eval_str_list,
                             help='weight to the kld term')
-        
+
     def build_criterion(self, args):
         return NegativeELBOLoss(args)
     

@@ -5,6 +5,7 @@ import torch.nn as nn
 from disent.connectors import (
     BernoulliWrappingConnector, MLPConnector, StochasticConnector)
 from disent.modules import StochasticModule
+from disent.utils import getattr_with_default
 from . import BaseModel, register_model
 
 
@@ -59,7 +60,7 @@ class ConvVAE(BaseModel):
         prior = self.prior(z)
         x = self.decoder(z)
         return {
-            'x': x;
+            'x': x,
             'posterior': posterior,
             'prior': prior,
             'z': z
@@ -168,8 +169,7 @@ class ConvDecoder(nn.Module):
         outputs = inputs    # size (batch_size, code_size)
         for fc in self.fcs:
             outputs = fc(outputs)
-
-        outputs.view(-1, *self._in_sizes)
+        outputs = outputs.view(-1, *self._in_sizes)
         for conv, bn in zip(self.convs[:-1], self.bns):
             outputs = conv(outputs)
             if self._use_bn:
@@ -181,14 +181,17 @@ class ConvDecoder(nn.Module):
 
 
 def base_architecture(args):
-    conv_layers = eval(getattr(args, 'conv_layers', '((32, 4, 2, 1),) * 2 + ((64, 4, 2, 1),) * 2'))
-    dense_layers = eval(getattr(args, 'dense_layers', '(1024, 256)'))
-    out_size = eval(getattr(args, 'conv_output_size', '(64, 4, 4)'))
+
+    conv_layers = eval(
+        getattr_with_default(args, 'conv_layers', '((32, 4, 2, 1),) * 2 + ((64, 4, 2, 1),) * 2'))
+    dense_layers = eval(
+        getattr_with_default(args, 'dense_layers', '(1024, 256)'))
+    out_size = eval(getattr_with_default(args, 'conv_output_size', '(64, 4, 4)'))
     
     args.encoder_convs = conv_layers
     args.encoder_denses = dense_layers
     args.conv_output_size = out_size
 
     # reverse encoder layers
-    args.decoder_convs = reversed(conv_layers[:-1]) + ((args.in_channels,) + conv_layers[-1][1:])
-    args.decoder_denses = reversed(dense_layers[1:])
+    args.decoder_convs = tuple(reversed(conv_layers[:-1])) + ((args.in_channels,) + conv_layers[-1][1:],)
+    args.decoder_denses = tuple(reversed(dense_layers[1:]))

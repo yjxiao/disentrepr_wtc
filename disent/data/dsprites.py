@@ -8,6 +8,7 @@ from . import VisionDataset, register_dataset
 
 @register_dataset('dsprites')
 class DSprites(VisionDataset):
+    in_channels = 1
     
     def _load_data(self):
         filepath = os.path.join(self.root, 'dsprites_ndarray_co1sh3sc6or40x32y32_64x64.npz')

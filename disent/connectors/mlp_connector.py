@@ -1,3 +1,5 @@
+from numbers import Number
+
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
@@ -9,7 +11,8 @@ class MLPConnector(BaseConnector):
     """Connector that uses an MLP to transform shape. (It is an MLP)"""
     
     def __init__(self, input_size, output_size, nonlinearity='tanh'):
-        super().__init__(output_size)
+        super().__init__()
+        self._output_size = output_size
         if nonlinearity in ['tanh', 'relu']:
             self.activation_func = getattr(torch, nonlinearity)
         elif nonlinearity in ['softplus', 'leaky_relu']:
@@ -19,14 +22,14 @@ class MLPConnector(BaseConnector):
         else:
             raise ValueError("Unsupported nonlinearity: " + nonlinearity)
         
-        if type(output_size) is int:
+        if isinstance(output_size, Number):
             output_size = [output_size]
         self.linears = nn.ModuleList([nn.Linear(input_size, size) for size in output_size])
         
     def forward(self, inputs):
         results = tuple(
             self.activation_func(linear(inputs)) for linear in self.linears)
-        if type(self._output_size) is int:
+        if isinstance(self._output_size, Number):
             return results[0]
         else:
             return results

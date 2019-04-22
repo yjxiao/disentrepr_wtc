@@ -19,7 +19,7 @@ def register_hparam_scheduler(name):
         HPARAM_SCHEDULER_REGISTRY[name] = cls
         return cls
 
-    return register_lr_scheduler_cls
+    return register_hparam_scheduler_cls
 
 
 for file in os.listdir(os.path.dirname(__file__)):

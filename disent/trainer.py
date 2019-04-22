@@ -1,6 +1,7 @@
 from collections import OrderedDict
 
 import torch
+import torch.nn as nn
 
 from disent import optim, utils
 from disent.meters import AverageMeter, StopwatchMeter, TimeMeter
@@ -92,7 +93,7 @@ class Trainer(object):
         # only build hparam scheduler for the main model
         for hparam in self.args.hparams:
             self._hp_schedulers[hparam] = hparam_scheduler.build_hparam_scheduler(
-                self.args, hparam, self._optimizers['main'])
+                self.args, hparam, self.get_optimizer())
 
     def save_checkpoint(self, filename, extra_state):
         extra_state['train_meters'] = self.meters
@@ -158,17 +159,14 @@ class Trainer(object):
                 optimizer = self.get_optimizer(comp)
                 optimizer.zero_grad()
                 retain_graph = i < k - 1
-                loss.backward(retain_graph=retain_graph)
+                comp_loss.backward(retain_graph=retain_graph)
                 grad_norm += optimizer.clip_grad_norm(self.args.clip_norm)
                 optimizer.step()
                 
             self._num_updates += 1
 
-            for comp in self.lr_schedulers:
-                self.get_lr_scheduler(comp).step_update(self._num_updates)
-                
-            for hparam in self.hparam_schedulers:
-                self.get_hparam_scheduler(hparam).step_update(self._num_updates)
+            self.lr_step_update(self._num_updates)
+            self.hparam_step_update(self._num_updates)
 
             # update meters
             self.meters['ups'].update(1.)
@@ -178,7 +176,7 @@ class Trainer(object):
                 else 0.)
 
             for comp in self.criterion.loss_components:
-                comp_loss = logging_output.get(loss_comp, 0)
+                comp_loss = logging_output.get(comp, 0)
                 self.meters['train_' + comp].update(comp_loss, batch_size)
 
             self.meters['train_loss'].update(logging_output.get('loss', 0), batch_size)
@@ -202,7 +200,7 @@ class Trainer(object):
                 sample, self.model, self.criterion)
 
         for comp in self.criterion.loss_components:
-            comp_loss = logging_output.get(loss_comp, 0)
+            comp_loss = logging_output.get(comp, 0)
             self.meters['valid_' + comp].update(comp_loss, batch_size)
 
         self.meters['valid_loss'].update(logging_output.get('loss', 0), batch_size)
@@ -215,20 +213,36 @@ class Trainer(object):
             for optimizer in self.optimizers.values():
                 optimizer.zero_grad()
 
-    def lr_step(self, epoch, val_loss=None, key='main'):
-        return self.get_lr_scheduler(key).step(epoch, val_loss)
+    def lr_step(self, epoch, val_loss=None, key=None):
+        if key is None:
+            for comp in self.lr_schedulers:
+                self.get_lr_scheduler(comp).step(epoch, val_loss)
+        else:
+            self.get_lr_scheduler(key).step(epoch, val_loss)
 
-    def lr_step_update(self, num_updates, key='main'):
-        return self.get_lr_scheduler(key).step_update(num_updates)
+    def lr_step_update(self, num_updates, key=None):
+        if key is None:
+            for comp in self.lr_schedulers:
+                self.get_lr_scheduler(comp).step_update(num_updates)
+        else:
+            self.get_lr_scheduler(key).step_update(num_updates)
 
     def get_lr(self, key='main'):
         return self.get_optimizer(key).get_lr()
 
-    def hparam_step(self, epoch, val_loss, hparam):
-        return self.get_hparam_scheduler(hparam).step(epoch, val_loss)
+    def hparam_step(self, epoch, val_loss, hparam=None):
+        if hparam is None:
+            for hparam in self.hparam_schedulers:
+                self.get_hparam_scheduler(hparam).step(epoch, val_loss)
+        else:
+            self.get_hparam_scheduler(hparam).step(epoch, val_loss)
 
-    def hparam_step_update(self, num_updates, hparam):
-        return self.get_hparam_scheduler(hparam).step_update(num_updates)
+    def hparam_step_update(self, num_updates, hparam=None):
+        if hparam is None:
+            for hparam in self.hparam_schedulers:
+                self.get_hparam_scheduler(hparam).step_update(num_updates)
+        else:
+            self.get_hparam_scheduler(hparam).step_update(num_updates)
 
     def get_hparam(self, hparam):
         return self.get_optimizer('main').get_hparam(hparam)

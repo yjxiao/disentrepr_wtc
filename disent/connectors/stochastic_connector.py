@@ -1,3 +1,5 @@
+from numbers import Number
+
 import torch
 import torch.nn as nn
 from torch.distributions import constraints
@@ -9,8 +11,8 @@ from . import BaseConnector
 class StochasticConnector(BaseConnector):
     """Connector to produce a stochastic unit."""
     def __init__(self, input_size, output_size, distribution='normal'):
-        super().__init__(output_size)
-        if type(self._output_size) is not int:
+        super().__init__()
+        if not isinstance(output_size, Number):
             raise ValueError("Unsupported output size. Should be int.")
         if distribution not in DISTRIBUTION_REGISTRY:
             raise ValueError("Unsupported distribution: " + distribution)
