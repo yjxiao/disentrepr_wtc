@@ -61,7 +61,8 @@ def load_model_for_inference(filename, task):
     if not os.path.exists(filename):
         raise IOError('Model file not found: {}'.format(filename))
     
-    state = torch.load(path, map_location=lambda s, l: default_restore_location(s, 'cpu'))
+    state = torch.load(
+        filename, map_location=lambda s, l: default_restore_location(s, 'cpu'))
     args = state['args']
     model = task.build_model(args)
     model.load_state_dict(state['model'], strict=True)

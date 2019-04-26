@@ -6,7 +6,7 @@ from disent.meters import StopwatchMeter
 
 def main(args):
     assert args.path is not None, '--path required for evaluation'
-    
+    print(args)
     use_cuda = torch.cuda.is_available() and not args.cpu
 
     task = tasks.setup_task(args)

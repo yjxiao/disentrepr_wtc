@@ -51,7 +51,7 @@ def add_dataset_args(parser, train=False):
 def add_evaluation_args(parser):
     group = parser.add_argument_group('Evaluation')
     group.add_argument('--path', metavar='FILE', help='path to model file')
-    group.add_argument('--metric', type=str, metavar='MET'
+    group.add_argument('--metric', type=str, metavar='MET',
                        choices=METRIC_REGISTRY.keys(),
                        help='evaluation metric')
     return group

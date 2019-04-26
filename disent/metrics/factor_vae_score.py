@@ -3,9 +3,12 @@ from collections import OrderedDict
 import numpy as np
 import torch.nn as nn
 
-from . import BaseMetric
+from disent import utils
+from disent.models import BaseModel
+from . import BaseMetric, register_metric
 
 
+@register_metric('factor_vae')
 class FactorVAEScore(BaseMetric):
     
     @staticmethod
@@ -20,10 +23,11 @@ class FactorVAEScore(BaseMetric):
 
     def evaluate(self, task, model, seed):
         model = _check_model(model)
+        model.eval()
         # size: (code_size,)
         global_variances = _estimate_variances(
             task, model, self.args.variance_estimate_batches,
-            self.args.batch_size, seed):
+            self.args.batch_size, seed, self.cuda)
         active_dims = _prune_dims(global_variances)
         stats = OrderedDict()
 
@@ -34,14 +38,14 @@ class FactorVAEScore(BaseMetric):
             return stats
         train_votes = _gather_votes(
             task, model, self.args.train_batches, self.args.batch_size,
-            global_variances, active_dims, seed)
+            global_variances, active_dims, seed, self.cuda)
         classifier = np.argmax(train_votes, axis=0)
         other_index = np.arange(train_votes.shape[1])
         train_acc = np.sum(
             train_votes[classifier, other_index]) * 1. / np.sum(train_votes)
         eval_votes = _gather_votes(
             task, model, self.args.eval_batches, self.args.batch_size,
-            global_variances, active_dims, seed + task.dataset.num_factors)
+            global_variances, active_dims, seed + task.dataset.num_factors, self.cuda)
         eval_acc = np.sum(
             eval_votes[classifier, other_index]) * 1. / np.sum(eval_votes)
         stats['train_acc'] = train_acc
@@ -51,7 +55,7 @@ class FactorVAEScore(BaseMetric):
 
         
 def _gather_votes(task, model, num_batches, batch_size,
-                  global_variances, active_dims, seed):
+                  global_variances, active_dims, seed, cuda):
     num_factors = task.dataset.num_factors
     code_size = global_variances.shape[0]
     votes = np.zeros((num_factors, code_size), dtype=int)
@@ -64,6 +68,8 @@ def _gather_votes(task, model, num_batches, batch_size,
             seed=seed+1+factor_index).next_epoch_itr(shuffle=False)
         
         for batch in itr:
+            if cuda:
+                batch = utils.move_to_cuda(batch)
             outputs = model(batch)
             reprs = outputs['z'].detach().cpu().numpy()
             local_variances = np.var(reprs, axis=0, ddof=1)
@@ -74,7 +80,7 @@ def _gather_votes(task, model, num_batches, batch_size,
     return votes
 
     
-def _estimate_variances(task, model, num_batches, batch_size, seed):
+def _estimate_variances(task, model, num_batches, batch_size, seed, cuda):
     epoch_iter = task.get_batch_iterator(
         dataset=task.dataset,
         batch_size=batch_size,
@@ -83,6 +89,8 @@ def _estimate_variances(task, model, num_batches, batch_size, seed):
 
     code_samples = []
     for batch in epoch_iter:
+        if cuda:
+            batch = utils.move_to_cuda(batch)
         outputs = model(batch)
         # z has size (batch_size, code_size)
         code_samples.append(outputs['z'].detach().cpu().numpy())
@@ -102,3 +110,4 @@ def _check_model(model):
     assert issubclass(model.__class__, BaseModel), \
         "model class needs to be a subclass of BaseModel"
     return model
+

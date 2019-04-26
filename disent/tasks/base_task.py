@@ -1,3 +1,5 @@
+import numpy as np
+
 from disent.data import build_dataset, data_utils
 from disent.data import EpochBatchIterator
 
@@ -46,7 +48,7 @@ class BaseTask(object):
             indices = dataset.ordered_indices()
 
         result_indices = []
-        for i in num_batches:
+        for i in range(num_batches):
             start = i * batch_size
             end = start + batch_size
             idx = indices[start:end]

@@ -181,13 +181,14 @@ class ConvDecoder(nn.Module):
 
 
 def base_architecture(args):
+    conv_layers = eval(getattr_with_default(
+        args, 'conv_layers', '((32, 4, 2, 1),) * 2 + ((64, 4, 2, 1),) * 2'))
+    dense_layers = eval(getattr_with_default(
+        args, 'dense_layers', '(1024, 256)'))
+    out_size = getattr_with_default(args, 'conv_output_size', '(64, 4, 4)')
+    if isinstance(out_size, str):
+        out_size = eval(out_size)
 
-    conv_layers = eval(
-        getattr_with_default(args, 'conv_layers', '((32, 4, 2, 1),) * 2 + ((64, 4, 2, 1),) * 2'))
-    dense_layers = eval(
-        getattr_with_default(args, 'dense_layers', '(1024, 256)'))
-    out_size = eval(getattr_with_default(args, 'conv_output_size', '(64, 4, 4)'))
-    
     args.encoder_convs = conv_layers
     args.encoder_denses = dense_layers
     args.conv_output_size = out_size
