@@ -57,6 +57,17 @@ def getattr_with_default(args, attr, default):
     return value
 
 
+def load_model_for_inference(filename, task):
+    if not os.path.exists(filename):
+        raise IOError('Model file not found: {}'.format(filename))
+    
+    state = torch.load(path, map_location=lambda s, l: default_restore_location(s, 'cpu'))
+    args = state['args']
+    model = task.build_model(args)
+    model.load_state_dict(state['model'], strict=True)
+    return model, args
+
+
 def load_model_state(filename, model):
     if not os.path.exists(filename):
         return None, None, None

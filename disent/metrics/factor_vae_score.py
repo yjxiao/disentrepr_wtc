@@ -22,8 +22,8 @@ class FactorVAEScore(BaseMetric):
         model = _check_model(model)
         # size: (code_size,)
         global_variances = _estimate_variances(
-            task, model, args.variance_estimate_batches,
-            args.batch_size, seed):
+            task, model, self.args.variance_estimate_batches,
+            self.args.batch_size, seed):
         active_dims = _prune_dims(global_variances)
         stats = OrderedDict()
 
@@ -33,14 +33,14 @@ class FactorVAEScore(BaseMetric):
             stats["num_active_dims"] = 0
             return stats
         train_votes = _gather_votes(
-            task, model, args.train_batches, args.batch_size,
+            task, model, self.args.train_batches, self.args.batch_size,
             global_variances, active_dims, seed)
         classifier = np.argmax(train_votes, axis=0)
         other_index = np.arange(train_votes.shape[1])
         train_acc = np.sum(
             train_votes[classifier, other_index]) * 1. / np.sum(train_votes)
         eval_votes = _gather_votes(
-            task, model, args.eval_batches, args.batch_size,
+            task, model, self.args.eval_batches, self.args.batch_size,
             global_variances, active_dims, seed + task.dataset.num_factors)
         eval_acc = np.sum(
             eval_votes[classifier, other_index]) * 1. / np.sum(eval_votes)
