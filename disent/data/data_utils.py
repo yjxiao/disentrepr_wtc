@@ -2,9 +2,12 @@ import contextlib
 import numpy as np
 
 
-def batch_sampler(indices, batch_size):
+def batch_sampler(indices, batch_size, num_batches=None):
     for i in range(0, len(indices), batch_size):
-        yield indices[i:(i+batch_size)]
+        if num_batches is not None and i >= num_batches:
+            break
+        else:
+            yield indices[i:(i+batch_size)]
 
 
 @contextlib.contextmanager

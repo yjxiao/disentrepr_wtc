@@ -108,16 +108,9 @@ class EpochBatchIterator(object):
                 self._next_epoch_itr = itr.skip(itr_pos)
 
     def _get_iterator_for_epoch(self, epoch, shuffle):
-
-        def shuffle_batches(batches, seed):
-            # set seed based on the seed and epoch number so that we get
-            # reproducible results when resuming from checkpoints
-            with data_utils.numpy_seed(seed):
-                np.random.shuffle(batches)
-            return batches
-
         if shuffle:
-            batches = shuffle_batches(list(self.frozen_batches), self.seed + epoch)
+            batches = _shuffle_batches(
+                list(self.frozen_batches), self.seed + epoch)
         else:
             batches = self.frozen_batches
             
@@ -125,3 +118,11 @@ class EpochBatchIterator(object):
             self.dataset,
             collate_fn=self.collate_fn,
             batch_sampler=batches))
+
+
+def _shuffle_batches(batches, seed):
+    # set seed based on the seed and epoch number so that we get
+    # reproducible results when resuming from checkpoints
+    with data_utils.numpy_seed(seed):
+        np.random.shuffle(batches)
+        return batches

@@ -2,6 +2,7 @@ import argparse
 
 import torch
 
+from disent.metrics import METRIC_REGISTRY
 from disent.models import MODEL_REGISTRY
 from disent.optim import OPTIMIZER_REGISTRY
 from disent.optim.lr_scheduler import LR_SCHEDULER_REGISTRY
@@ -47,6 +48,15 @@ def add_dataset_args(parser, train=False):
     return group
 
 
+def add_evaluation_args(parser):
+    group = parser.add_argument_group('Evaluation')
+    group.add_argument('--path', metavar='FILE', help='path to model file')
+    group.add_argument('--metric', type=str, metavar='MET',
+                       choices=METRIC_REGISTRY.keys(),
+                       help='evaluation metric')
+    return group
+
+    
 def add_model_args(parser):
     group = parser.add_argument_group('Model configuration')
     group.add_argument('--vae-arch', default='conv_vae', metavar='ARCH',
@@ -99,6 +109,13 @@ def eval_str_list(x, type=float):
         return [type(x)]
 
 
+def get_evaluation_parser(default_task='vae'):
+    parser = get_parser('Evaluation', default_task)
+    add_dataset_args(parser)
+    add_evaluation_args(parser)
+    return parser
+
+    
 def get_training_parser(default_task='vae'):
     parser = get_parser('Trainer', default_task)
     add_dataset_args(parser, train=True)
@@ -133,6 +150,8 @@ def get_parser(desc, default_task):
 def parse_args(parser, input_args=None, parse_known=False):
     args, _ = parser.parse_known_args(input_args)
 
+    if hasattr(args, 'metric'):
+        METRIC_REGISTRY[args.metric].add_args(parser)
     if hasattr(args, 'vae_arch'):
         MODEL_REGISTRY[args.vae_arch].add_args(parser)
     if hasattr(args, 'adversarial_arch'):
@@ -146,6 +165,7 @@ def parse_args(parser, input_args=None, parse_known=False):
     if hasattr(args, 'hparam_scheduler'):
         for hparam in TASK_REGISTRY[args.task].hparams:
             HPARAM_SCHEDULER_REGISTRY[args.hparam_scheduler].add_args(parser, hparam)
+
     if parse_known:
         return parser.parse_known_args(input_args)
     else:
