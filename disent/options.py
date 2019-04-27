@@ -61,8 +61,6 @@ def add_model_args(parser):
     group = parser.add_argument_group('Model configuration')
     group.add_argument('--vae-arch', default='conv_vae', metavar='ARCH',
                        help='VAE model architecture')
-    group.add_argument('--adversarial-arch', default='mlp_discriminator', metavar='ARCH',
-                       help='adversarial model architecture')
     return group
 
     
@@ -152,12 +150,10 @@ def parse_args(parser, input_args=None, parse_known=False):
 
     if hasattr(args, 'metric'):
         METRIC_REGISTRY[args.metric].add_args(parser)
-    if hasattr(args, 'vae_arch'):
-        MODEL_REGISTRY[args.vae_arch].add_args(parser)
-    if hasattr(args, 'adversarial_arch'):
-        MODEL_REGISTRY[args.adversarial_arch].add_args(parser)
     if hasattr(args, 'task'):
         TASK_REGISTRY[args.task].add_args(parser)
+    if hasattr(args, 'vae_arch'):
+        MODEL_REGISTRY[args.vae_arch].add_args(parser)
     if hasattr(args, 'optimizer'):
         OPTIMIZER_REGISTRY[args.optimizer].add_args(parser)
     if hasattr(args, 'lr_scheduler'):
@@ -165,6 +161,11 @@ def parse_args(parser, input_args=None, parse_known=False):
     if hasattr(args, 'hparam_scheduler'):
         for hparam in TASK_REGISTRY[args.task].hparams:
             HPARAM_SCHEDULER_REGISTRY[args.hparam_scheduler].add_args(parser, hparam)
+
+    # adversarial archs are added in task def
+    args, _ = parser.parse_known_args(input_args)
+    if hasattr(args, 'adversarial_arch'):
+        MODEL_REGISTRY[args.adversarial_arch].add_args(parser)
 
     if parse_known:
         return parser.parse_known_args(input_args)
