@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 
 from disent.connectors import MLPConnector, StochasticConnector
@@ -51,7 +52,7 @@ class MLPRegressor(BaseModel):
         
         # next step set all diagonal inputs to zero
         mask = torch.diag_embed(
-            inputs.new_ones((batch_size, input_size), dtype=uint8))
+            inputs.new_ones((batch_size, input_size), dtype=torch.uint8))
         inputs[mask] = 0
         # note: results are distributions with parameter size (batch_size, code_size)
         return self.layers(inputs)
@@ -63,7 +64,7 @@ def base_architecture(args):
     r_layers = getattr_with_default(
         args, 'regressor_layers', '(256,) * 3')
     if isinstance(r_layers, str):
-        d_layers = eval(r_layers)
+        r_layers = eval(r_layers)
     args.regressor_layers = r_layers
     args.regressor_nonlinearity = getattr_with_default(
         args, 'regressor_nonlinearity', 'tanh')
