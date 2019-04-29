@@ -1,3 +1,4 @@
+# NOTE: this model does not work
 import torch
 import torch.nn as nn
 
@@ -19,7 +20,7 @@ class DualTCVAETask(BaseTask):
         parser.add_argument('--adversarial-arch', metavar='ARCH',
                             type=str, default='mlp_regressor',
                             help='adversarial model architecture')
-        parser.add_argument('--beta', default='9', type=eval_str_list,
+        parser.add_argument('--beta', default='1', type=eval_str_list,
                             help='extra weight to the tc component')
     
     def build_criterion(self, args):
@@ -52,7 +53,7 @@ class DualTCVAETask(BaseTask):
         model.eval()
         with torch.no_grad():
             (rec, kld, dualtc, adv_loss), batch_size, logging_output = criterion(model, sample)
-        loss = rec + kld + self.args.beta * dualtc
+        loss = rec + kld + self.args.beta[-1] * dualtc
         logging_output['loss'] = loss.item()
         
         losses = {

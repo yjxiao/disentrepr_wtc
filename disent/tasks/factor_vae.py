@@ -8,7 +8,7 @@ from . import BaseTask, register_task
 
 @register_task('factor_vae')
 class FactorVAETask(BaseTask):
-    hparams = ('kld_weight', 'gamma')
+    hparams = ('beta', 'gamma')
     
     @staticmethod
     def add_args(parser):
@@ -19,6 +19,8 @@ class FactorVAETask(BaseTask):
         parser.add_argument('--adversarial-arch', metavar='ARCH', 
                             type=str, default='mlp_discriminator',
                             help='adversarial model architecture')
+        parser.add_argument('--beta', default='1', type=eval_str_list,
+                            help='weight to the kld term')
         parser.add_argument('--gamma', default='9', type=eval_str_list,
                             help='extra weight to the tc component')
     
@@ -33,10 +35,10 @@ class FactorVAETask(BaseTask):
         })
 
     def train_step(self, sample, model, criterion, optimizer, ignore_grad=False):
-        # forward pass and handles kld_weight
+        # forward pass and handles kld weight
         model.train()
         (rec, kld, tc, adv_loss), batch_size, logging_output = criterion(model, sample)
-        loss = rec + optimizer.get_hparam('kld_weight') * kld + \
+        loss = rec + optimizer.get_hparam('beta') * kld + \
                optimizer.get_hparam('gamma') * tc
         logging_output['loss'] = loss.item()
         if ignore_grad:
@@ -52,7 +54,7 @@ class FactorVAETask(BaseTask):
         model.eval()
         with torch.no_grad():
             (rec, kld, tc, adv_loss), batch_size, logging_output = criterion(model, sample)
-        loss = rec + kld + self.args.gamma * tc
+        loss = rec + self.args.beta[-1] * kld + self.args.gamma[-1] * tc
         logging_output['loss'] = loss.item()        
         losses = {
             'main': loss,

@@ -40,6 +40,6 @@ class TCVAETask(BaseTask):
         model.eval()
         with torch.no_grad():
             (rec, kld, tc), batch_size, logging_output = criterion(model, sample)
-        loss = rec + kld + self.args.beta * tc
+        loss = rec + kld + self.args.beta[-1] * tc
         logging_output['loss'] = loss.item()        
         return loss, batch_size, logging_output
