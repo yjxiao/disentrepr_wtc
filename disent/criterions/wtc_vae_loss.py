@@ -54,7 +54,7 @@ def shuffle_code(code):
     Args:
         code: [batch_size, code_size]
     """
-    code = code.detach()
+    code = code.clone()
     shuffled = []
     bsz, csz = code.size()
     for i in range(csz):

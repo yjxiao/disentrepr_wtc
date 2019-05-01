@@ -6,7 +6,7 @@ from disent.utils import eval_str_list
 from . import BaseTask, register_task
 
 
-@register_task('factor_vae')
+@register_task('factor')
 class FactorVAETask(BaseTask):
     hparams = ('beta', 'gamma')
     

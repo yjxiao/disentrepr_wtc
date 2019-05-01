@@ -1,3 +1,6 @@
+import os
+import csv
+
 import torch
 
 from disent import metrics, options, progress_bar, tasks, utils
@@ -19,17 +22,45 @@ def main(args):
         model.cuda()
 
     metric = metrics.build_metric(args)
-    dummy_progress = progress_bar.build_progress_bar(args, [])
-    
+
+    pb = progress_bar.build_progress_bar(args, range(args.num_evals))
+    results = []
     eval_timer = StopwatchMeter()
-    eval_timer.start()
-    stats = metric.evaluate(task, model, args.seed)
+    for i in pb:
+        seed = args.seed + i * 73    # different seed for each evaluation; 73 is arbitrary
+        stats = metric.evaluate(task, model, seed)
+        stats['seed'] = seed
+        pb.log(stats)
+        results.append(stats)
     eval_timer.stop()
 
     print('| evaluation done in {:.1f}s'.format(eval_timer.sum))
-    dummy_progress.print(stats)
+    if args.save_results:
+        filename = get_identifier(args)
+        filepath = os.path.join(args.save_dir, filename)
+        fieldnames = stats.keys()
+        with open(filepath, 'w') as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+            for stats in results:
+                writer.writerow(stats)
+        print('| results saved to {}'.format(filepath))
 
 
+def get_identifier(args):
+    hp_str = ''
+    for seg in args.path.split('/'):
+        if seg.startswith('beta'):
+            val = seg.split('.')[1]
+            hp_str += '.BETA-{}'.format(val)
+        elif seg.startswith('gamma'):
+            val = seg.split('.')[1]
+            hp_str += '.GAMMA-{}'.format(val)
+            
+    return 'results.DS-{}.METRIC-{}.TASK-{}{}.csv'.format(
+        args.dataset, args.metric, args.task, hp_str)
+
+    
 def cli_main():
     parser = options.get_evaluation_parser()
     args = options.parse_args(parser)

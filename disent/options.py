@@ -54,6 +54,12 @@ def add_evaluation_args(parser):
     group.add_argument('--metric', type=str, metavar='MET',
                        choices=METRIC_REGISTRY.keys(),
                        help='evaluation metric')
+    group.add_argument('--num-evals', type=int, default=50, metavar='N',
+                       help='number of evaluations')
+    group.add_argument('--save-results', action='store_true',
+                       help='save evaluation results to csv file')
+    group.add_argument('--save-dir', metavar='DIR', default='results',
+                       help='path to save evaluation results')
     return group
 
     

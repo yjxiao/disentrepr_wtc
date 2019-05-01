@@ -5,7 +5,7 @@ from disent.utils import eval_str_list
 from . import BaseTask, register_task
 
 
-@register_task('tc_vae')
+@register_task('tc')
 class TCVAETask(BaseTask):
     hparams = ('kld_weight', 'beta')
     
