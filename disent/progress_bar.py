@@ -37,7 +37,9 @@ def build_progress_bar(args, iterator, epoch=None, prefix=None, default='tqdm', 
 
 
 def format_stat(stat):
-    if isinstance(stat, Number):
+    if isinstance(stat, float):
+        stat = '{:.3f}'.format(stat)
+    elif isinstance(stat, Number):
         stat = '{:g}'.format(stat)
     elif isinstance(stat, AverageMeter):
         stat = '{:.3f}'.format(stat.avg)

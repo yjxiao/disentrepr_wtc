@@ -5,6 +5,7 @@ from .dualtc_vae_loss import DualTCVAELoss
 from .mmd_wae_loss import MMDWAELoss
 from .gan_wae_loss import GANWAELoss
 from .wtc_vae_loss import WTCVAELoss
+from .mmd_tc_vae_loss import MMDTCVAELoss
 
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     'NegativeELBOLoss',
     'TCVAELoss',
     'WTCVAELoss',
+    'MMDTCVAELoss',
 ]

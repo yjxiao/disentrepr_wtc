@@ -30,7 +30,7 @@ def main(args):
         seed = args.seed + i * 73    # different seed for each evaluation; 73 is arbitrary
         stats = metric.evaluate(task, model, seed)
         stats['seed'] = seed
-        pb.log(stats)
+        pb.print(stats)
         results.append(stats)
     eval_timer.stop()
 

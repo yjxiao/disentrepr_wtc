@@ -2,19 +2,28 @@ import torch
 from torch.nn.modules.loss import _Loss
 from torch.distributions import kl_divergence
 
+from .mmd_utils import mmd_rbf, mmd_imq
 
-class WTCVAELoss(_Loss):
+
+class MMDTCVAELoss(_Loss):
     def __init__(self, args):
         super().__init__()
         self.args = args
+        if args.mmd_kernel == 'rbf':
+            self.mmd = mmd_rbf
+        elif args.mmd_kernel == 'imq':
+            self.mmd = mmd_imq
+        else:
+            raise ValueError("Unsupported kernel type: " + args.mmd_kernel)
         
     @property
     def loss_components(self):
-        return ['rec', 'kld', 'wtc', 'adv_loss']
+        return ['rec', 'kld', 'wtc']
     
     def forward(self, model, sample):
-        outputs = model['main'](sample)
+        outputs = model(sample)
         batch_size = sample['batch_size']
+        prior = outputs['prior']
         z = outputs['z']
         x_rec = outputs['x']
         logging_output = {}
@@ -27,21 +36,16 @@ class WTCVAELoss(_Loss):
 
         # KLD
         kld = torch.sum(
-            kl_divergence(outputs['posterior'], outputs['prior'])) / batch_size
+            kl_divergence(outputs['posterior'], prior)) / batch_size
         logging_output['kld'] = kld.item()
         
         # WTC
+        prior_var = prior.variance.mean()
         shuffled_z = shuffle_code(z)
-        f_z_jnt = model['adversarial'](z)
-        f_z_mrg = model['adversarial'](shuffled_z)
-        wtc = (f_z_jnt.sum() - f_z_mrg.sum()) / batch_size
+        wtc = self.mmd(z, shuffled_z, prior_var)
         logging_output['wtc'] = wtc.item()
 
-        # Adv loss
-        adv_loss = - wtc
-        logging_output['adv_loss'] = adv_loss.item()
-
-        return (rec, kld, wtc, adv_loss), batch_size, logging_output
+        return (rec, kld, wtc), batch_size, logging_output
 
 
 def shuffle_code(code):
