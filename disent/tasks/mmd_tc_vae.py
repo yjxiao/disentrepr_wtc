@@ -6,7 +6,7 @@ from disent.utils import eval_str_list
 from . import BaseTask, register_task
 
 
-@register_task('wtc_vae')
+@register_task('mmd_tc')
 class MMDTotalCorrelationVAETask(BaseTask):
     """Maximum Mean Discrepancy Total Correlation VAE. """
     hparams = ('beta', 'gamma')
@@ -26,7 +26,7 @@ class MMDTotalCorrelationVAETask(BaseTask):
                             help='weight to the wtc term')
         
     def build_criterion(self, args):
-        return WTCVAELoss(args)
+        return MMDTCVAELoss(args)
         
     def build_model(self, args):
         from disent import models

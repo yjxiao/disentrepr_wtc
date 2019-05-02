@@ -94,7 +94,7 @@ def add_optimization_args(parser):
                        help='Learning Rate Scheduler')
     group.add_argument('--lr-shrink', default=0.1, type=float, metavar='LS',
                        help='learning rate shrink factor for annealing, lr_new = (lr * lr_shrink)')
-    group.add_argument('--min-lr', default=1e-5, type=float, metavar='LR',
+    group.add_argument('--min-lr', default=1e-6, type=float, metavar='LR',
                        help='minimum learning rate')
     group.add_argument('--hparam-scheduler', default='fixed',
                        choices=HPARAM_SCHEDULER_REGISTRY.keys(),

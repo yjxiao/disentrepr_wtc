@@ -18,7 +18,7 @@ class Faces3D(VisionDataset):
         # this will create a list of aranges to be used in meshgrid
         fvals = [torch.arange(v) for v in self._factor_dims]
         self.factors = torch.stack(torch.meshgrid(fvals), dim=-1).reshape(-1, self.num_factors)
-        self.images = images.reshape(len(self), *self._image_dims)
+        self.images = images.reshape(len(self), 1, *self._image_dims)
         
     def __len__(self):
         return np.prod(self._factor_dims)
@@ -27,7 +27,7 @@ class Faces3D(VisionDataset):
         item = {
             'id': index,
             'factor': self.factors[index],
-            'image': self.images[index].unsqueeze(0)
+            'image': self.images[index]
         }
         return item
 

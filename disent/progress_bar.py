@@ -1,5 +1,4 @@
 # from https://github.com/pytorch/fairseq/blob/master/fairseq/progress_bar.py
-
 from collections import OrderedDict
 import json
 from numbers import Number
@@ -37,7 +36,7 @@ def build_progress_bar(args, iterator, epoch=None, prefix=None, default='tqdm', 
 
 
 def format_stat(stat):
-    if isinstance(stat, float):
+    if isinstance(stat, float) and stat > 1e-3:
         stat = '{:.3f}'.format(stat)
     elif isinstance(stat, Number):
         stat = '{:g}'.format(stat)
