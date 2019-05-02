@@ -46,7 +46,7 @@ do
 		   ;;
 	* )        exit 1
     esac
-
+    
     for dataset in $datasets
     do
 	echo "| training $task on $dataset"
@@ -70,7 +70,8 @@ do
 		       --max-update 300000 \
 		       --seed $seed \
 		       --$hparam $val \
-		       --save-dir /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam-$val/$seed > logs/D-$dataset.T-$task.${hparam^^}-$val.S-$seed.log
+		       --save-dir /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam-$val/$seed \
+		       > logs/D-$dataset.T-$task.${hparam^^}-$val.S-$seed.log
 	    done
 	done
     done

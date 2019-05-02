@@ -10,7 +10,7 @@ class WTCVAELoss(_Loss):
         
     @property
     def loss_components(self):
-        return ['rec', 'kld', 'wtc', 'adv_loss']
+        return ['rec', 'kld', 'wtc', 'critic_loss', 'gradient_penalty']
     
     def forward(self, model, sample):
         outputs = model['main'](sample)
@@ -36,12 +36,24 @@ class WTCVAELoss(_Loss):
         f_z_mrg = model['adversarial'](shuffled_z)
         wtc = (f_z_jnt.sum() - f_z_mrg.sum()) / batch_size
         logging_output['wtc'] = wtc.item()
-
+        
         # Adv loss
+        gp = get_gradient_penalty(z, shuffled_z, model['adversarial'])
         adv_loss = - wtc
-        logging_output['adv_loss'] = adv_loss.item()
+        logging_output['critic_loss'] = adv_loss.item()
+        logging_ouptut['gradient_penalty'] = gp.item()
 
-        return (rec, kld, wtc, adv_loss), batch_size, logging_output
+        return (rec, kld, wtc, adv_loss, gp), batch_size, logging_output
+
+
+def get_gradient_penalty(x, y, model):
+    alpha = torch.rand((x.size(0), 1))
+    interpolates = alpha * x + (1 - alpha) * y
+    f_int = model(interpolates)
+    grads = torch.autograd.grad(f_int, interpolates)[0]
+    slopes = grads.pow(2).sum(1).sqrt()
+    gp = torch.mean((slopes - 1) ** 2)
+    return gp
 
 
 def shuffle_code(code):
