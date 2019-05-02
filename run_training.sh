@@ -1,6 +1,7 @@
 device=3
 datasets=""
 task="vae"
+seeds="1 11 42 73 89"    # these are aribitrary
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -57,15 +58,20 @@ do
 	fi
 	for val in $values
 	do
-	    python train.py \
-		   --device-id $device \
-		   --no-validate \
-		   --no-epoch-checkpoints \
-		   --dataset $dataset \
-		   --lr $lr \
-		   --max-update 300000 \
-		   --$hparam $val \
-		   --save-dir /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam.$val > logs/$dataset.$task.$hparam.$val.log
+	    for seed in $seeds
+	    do
+		python train.py \
+		       --device-id $device \
+		       --no-validate \
+		       --no-epoch-checkpoints \
+		       --dataset $dataset \
+		       --task $task \
+		       --lr $lr \
+		       --max-update 300000 \
+		       --seed $seed \
+		       --$hparam $val \
+		       --save-dir /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam-$val/$seed > logs/D-$dataset.T-$task.${hparam^^}-$val.S-$seed.log
+	    done
 	done
     done
 done

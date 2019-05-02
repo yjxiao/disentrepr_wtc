@@ -11,6 +11,8 @@ def main(args):
     assert args.path is not None, '--path required for evaluation'
     print(args)
     use_cuda = torch.cuda.is_available() and not args.cpu
+    if use_cuda:
+        torch.cuda.set_device(args.device_id)
 
     task = tasks.setup_task(args)
     task.load_dataset()
@@ -49,16 +51,16 @@ def main(args):
 
 def get_identifier(args):
     hp_str = ''
-    for seg in args.path.split('/'):
+    segs = args.path.split('/')
+    seed = segs[-2]    # assuming the folder directly containing the file is the seed number 
+    for seg in segs:
         if seg.startswith('beta'):
-            val = seg.split('.')[1]
-            hp_str += '.BETA-{}'.format(val)
+            hp_str += '.{}'.format(seg.upper())
         elif seg.startswith('gamma'):
-            val = seg.split('.')[1]
-            hp_str += '.GAMMA-{}'.format(val)
+            hp_str += '.{}'.format(seg.upper())
             
-    return 'results.DS-{}.METRIC-{}.TASK-{}{}.csv'.format(
-        args.dataset, args.metric, args.task, hp_str)
+    return 'M-{}.D-{}.T-{}{}.S-{}.csv'.format(
+        args.metric, args.dataset, args.task, hp_str, seed)
 
     
 def cli_main():
