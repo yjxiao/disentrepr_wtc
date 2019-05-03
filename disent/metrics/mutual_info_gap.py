@@ -52,7 +52,8 @@ class MutualInformationGap(BaseMetric):
         # (num_factors,)
         entropy = _discrete_entropy(ys)
         sorted_mi = np.sort(mi, axis=0)[::-1]
-        mig = np.divide(sorted_mi[0, :] - sorted_mi[1, :], entropy[:])
+        with np.errstate(divide='ignore', invalid='ignore'):
+            mig = np.divide(sorted_mi[0, :] - sorted_mi[1, :], entropy[:])
         for i in range(len(mig)):
             stats['mig_factor_{}'.format(i)] = mig[i]
         stats['avg_mig'] = np.mean(mig[np.isfinite(mig)])

@@ -8,7 +8,7 @@ from disent.models import BaseModel
 from . import BaseMetric, register_metric
 
 
-@register_metric('factor_vae')
+@register_metric('factor')
 class FactorVAEScore(BaseMetric):
     
     @staticmethod

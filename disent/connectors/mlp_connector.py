@@ -10,7 +10,7 @@ from . import BaseConnector
 class MLPConnector(BaseConnector):
     """Connector that uses an MLP to transform shape. (It is an MLP)"""
     
-    def __init__(self, input_size, output_size, nonlinearity='tanh'):
+    def __init__(self, input_size, output_size, nonlinearity='tanh', squeeze_output=False):
         super().__init__()
         self._output_size = output_size
         if nonlinearity in ['tanh', 'relu']:
@@ -25,10 +25,14 @@ class MLPConnector(BaseConnector):
         if isinstance(output_size, Number):
             output_size = [output_size]
         self.linears = nn.ModuleList([nn.Linear(input_size, size) for size in output_size])
-        
+        # squeeze only applies when output size is 1
+        self.squeeze = squeeze_output and output_size == 1
+
     def forward(self, inputs):
         results = tuple(
             self.activation_func(linear(inputs)) for linear in self.linears)
+        if self.squeeze:
+            results = tuple(x.squeeze(-1) for x in results)
         if isinstance(self._output_size, Number):
             return results[0]
         else:

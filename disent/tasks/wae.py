@@ -1,31 +1,31 @@
 import torch
 import torch.nn as nn
 
-from disent.criterions import FactorVAELoss
+from disent.criterions import WAELoss
 from disent.utils import eval_str_list
 from . import BaseTask, register_task
 
 
-@register_task('factor')
-class FactorVAETask(BaseTask):
-    hparams = ('beta', 'gamma')
-    
+@register_task('wae')
+class WAETask(BaseTask):
+    hparams = ('beta', 'lambda')
+
     @staticmethod
     def add_args(parser):
         parser.add_argument('--data-dir', default='data/', type=str,
                             help='data directory')
         parser.add_argument('--dataset', default='dsprites', type=str,
                             help='dataset name to load')
-        parser.add_argument('--adversarial-arch', metavar='ARCH', 
-                            type=str, default='mlp_discriminator',
+        parser.add_argument('--adversarial-arch', metavar='ARCH',
+                            type=str, default='mlp_regressor',
                             help='adversarial model architecture')
         parser.add_argument('--beta', default='1', type=eval_str_list,
                             help='weight to the kld term')
-        parser.add_argument('--gamma', default='9', type=eval_str_list,
-                            help='extra weight to the tc component')
-    
+        parser.add_argument('--lambda', default='8', type=eval_str_list,
+                            help='weight to the gradient penalty term')
+        
     def build_criterion(self, args):
-        return FactorVAELoss(args)
+        return WAELoss(args)
     
     def build_model(self, args):
         from disent import models
@@ -35,15 +35,17 @@ class FactorVAETask(BaseTask):
         })
 
     def train_step(self, sample, model, criterion, optimizer, ignore_grad=False):
-        # forward pass and handles kld weight
+        # forward pass and handles kld_weight
         model.train()
-        (rec, kld, tc, adv_loss), batch_size, logging_output = criterion(model, sample)
-        loss = rec + optimizer.get_hparam('beta') * kld + \
-               optimizer.get_hparam('gamma') * tc
+        (rec, div, critic, gpenalty), batch_size, logging_output = criterion(model, sample)
+        loss = rec + optimizer.get_hparam('beta') * div
         logging_output['loss'] = loss.item()
+        adv_loss = critic + optimizer.get_hparam('lambda') * gpenalty
+
         if ignore_grad:
             loss *= 0
             adv_loss *= 0
+
         losses = {
             'main': loss,
             'adversarial': adv_loss,
@@ -53,11 +55,11 @@ class FactorVAETask(BaseTask):
     def valid_step(self, sample, model, criterion):
         model.eval()
         with torch.no_grad():
-            (rec, kld, tc, adv_loss), batch_size, logging_output = criterion(model, sample)
-        loss = rec + self.args.beta[-1] * kld + self.args.gamma[-1] * tc
-        logging_output['loss'] = loss.item()        
+            (rec, div, critic, gpenalty), batch_size, logging_output = criterion(model, sample)
+        loss = rec + self.args.beta[-1] * div
+        logging_output['loss'] = loss.item()
         losses = {
             'main': loss,
-            'adversarial': adv_loss,
+            'adversarial': critic,    # ignore gradient penalty during evaluation
         }
         return losses, batch_size, logging_output
