@@ -41,15 +41,15 @@ class WTCVAELoss(_Loss):
         gp = get_gradient_penalty(z, shuffled_z, model['adversarial'])
         adv_loss = - wtc
         logging_output['critic_loss'] = adv_loss.item()
-        logging_ouptut['gradient_penalty'] = gp.item()
+        logging_output['gradient_penalty'] = gp.item()
 
         return (rec, kld, wtc, adv_loss, gp), batch_size, logging_output
 
 
 def get_gradient_penalty(x, y, model):
-    alpha = torch.rand((x.size(0), 1))
+    alpha = torch.rand((x.size(0), 1), device=x.device)
     interpolates = alpha * x + (1 - alpha) * y
-    f_int = model(interpolates)
+    f_int = model(interpolates).sum()
     grads = torch.autograd.grad(f_int, interpolates)[0]
     slopes = grads.pow(2).sum(1).sqrt()
     gp = torch.mean((slopes - 1) ** 2)

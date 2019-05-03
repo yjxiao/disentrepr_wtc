@@ -24,7 +24,7 @@ class WassersteinTotalCorrelationRegularizedVAETask(BaseTask):
                             help='weight to the divergence term')
         parser.add_argument('--gamma', default='1', type=eval_str_list,
                             help='weight to the wtc term')
-        parser.add_argument('--lambda', default=0, type=float,
+        parser.add_argument('--lambda', default='0', type=eval_str_list,
                             help='weight to the gradient penalty term')
 
         
