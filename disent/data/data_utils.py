@@ -1,3 +1,4 @@
+import os
 import contextlib
 import numpy as np
 
@@ -23,3 +24,5 @@ def numpy_seed(seed):
         yield
     finally:
         np.random.set_state(state)
+
+        

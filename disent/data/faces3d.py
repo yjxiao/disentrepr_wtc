@@ -1,3 +1,7 @@
+""" 
+Note this dataset is the version from https://arxiv.org/pdf/1802.04942.pdf
+
+"""
 import os
 import numpy as np
 
