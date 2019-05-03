@@ -6,6 +6,7 @@ from .mmd_wae_loss import MMDWAELoss
 from .wtc_vae_loss import WTCVAELoss
 from .mmd_tc_vae_loss import MMDTCVAELoss
 from .wae_loss import WAELoss
+from .wtc_wae_loss import WTCWAELoss
 
 
 __all__ = [
@@ -17,4 +18,5 @@ __all__ = [
     'WTCVAELoss',
     'MMDTCVAELoss',
     'WAELoss',
+    'WTCWAELoss',
 ]
