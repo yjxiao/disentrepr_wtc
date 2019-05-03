@@ -3,6 +3,8 @@ import torch.nn.functional as F
 from torch.nn.modules.loss import _Loss
 from torch.distributions import kl_divergence
 
+from .utils import shuffle_code
+
 
 class FactorVAELoss(_Loss):
     def __init__(self, args):
@@ -46,17 +48,3 @@ class FactorVAELoss(_Loss):
         ) / batch_size
         logging_output['adv_loss'] = adv_loss.item()
         return (rec, kld, tc, adv_loss), batch_size, logging_output
-
-
-def shuffle_code(code):
-    """Shuffle latent variables across the batch
-    
-    Args:
-        code: [batch_size, code_size]
-    """
-    shuffled = []
-    bsz, csz = code.size()
-    for i in range(csz):
-        idx = torch.randperm(bsz)
-        shuffled.append(code[idx][:, i])
-    return torch.stack(shuffled, dim=1)

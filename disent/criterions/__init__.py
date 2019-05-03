@@ -3,18 +3,18 @@ from .negative_elbo_loss import NegativeELBOLoss
 from .tc_vae_loss import TCVAELoss
 from .dualtc_vae_loss import DualTCVAELoss
 from .mmd_wae_loss import MMDWAELoss
-from .gan_wae_loss import GANWAELoss
 from .wtc_vae_loss import WTCVAELoss
 from .mmd_tc_vae_loss import MMDTCVAELoss
+from .wae_loss import WAELoss
 
 
 __all__ = [
     'DualTCVAELoss',
     'FactorVAELoss',
-    'GANWAELoss',
     'MMDWAELoss',
     'NegativeELBOLoss',
     'TCVAELoss',
     'WTCVAELoss',
     'MMDTCVAELoss',
+    'WAELoss',
 ]

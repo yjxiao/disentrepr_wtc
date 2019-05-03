@@ -1,6 +1,6 @@
 device=3
 all_datasets="dsprites cars3d shapes3d"
-all_tasks="vae tc factor wtc mmd_tc"
+all_tasks="vae tc factor wtc mmd_tc wae"
 all_metrics="unsup mig factor"
 seed="1"    # these are aribitrary
 datasets=""
@@ -48,6 +48,9 @@ do
         "vae" )    hparam="beta"
                    values="1 4 8 16"
                    ;;
+	"wae" )    hparam="beta"
+		   values="1 4 8 16"
+		   ;;
         "tc" )     hparam="beta"
                    values="1 4 8 16"
                    ;;

@@ -32,6 +32,9 @@ do
 	"vae" )    hparam="beta"
 		   values="1 4 8 16"
 		   ;;
+	"wae" )    hparam="beta"
+		   values="1 4 8 16"
+		   ;;
 	"tc" )     hparam="beta"
 		   values="1 4 8 16"
 		   ;;

@@ -2,7 +2,7 @@ import torch
 from torch.nn.modules.loss import _Loss
 from torch.distributions import kl_divergence
 
-from .mmd_utils import mmd_rbf, mmd_imq
+from .utils import mmd_rbf, mmd_imq, shuffle_code
 
 
 class MMDTCVAELoss(_Loss):
@@ -46,18 +46,3 @@ class MMDTCVAELoss(_Loss):
         logging_output['wtc'] = wtc.item()
 
         return (rec, kld, wtc), batch_size, logging_output
-
-
-def shuffle_code(code):
-    """Shuffle latent variables across the batch
-    
-    Args:
-        code: [batch_size, code_size]
-    """
-    code = code.clone()
-    shuffled = []
-    bsz, csz = code.size()
-    for i in range(csz):
-        idx = torch.randperm(bsz)
-        shuffled.append(code[idx][:, i])
-    return torch.stack(shuffled, dim=1)

@@ -1,7 +1,7 @@
 import torch
 from torch.nn.modules.loss import _Loss
 
-from .mmd_utils import mmd_rbf, mmd_imq
+from .utils import mmd_rbf, mmd_imq
 
 
 class MMDWAELoss(_Loss):
