@@ -28,6 +28,7 @@ def main(args):
     pb = progress_bar.build_progress_bar(args, range(args.num_evals))
     results = []
     eval_timer = StopwatchMeter()
+    eval_timer.start()
     for i in pb:
         seed = args.seed + i * 73    # different seed for each evaluation; 73 is arbitrary
         stats = metric.evaluate(task, model, seed)
