@@ -2,6 +2,8 @@ import torch
 from torch.nn.modules.loss import _Loss
 from torch.distributions import kl_divergence
 
+from .utils import get_gradient_penalty, shuffle_code
+
 
 class WTCVAELoss(_Loss):
     def __init__(self, args):
@@ -44,28 +46,3 @@ class WTCVAELoss(_Loss):
         logging_output['gradient_penalty'] = gp.item()
 
         return (rec, kld, wtc, adv_loss, gp), batch_size, logging_output
-
-
-def get_gradient_penalty(x, y, model):
-    alpha = torch.rand((x.size(0), 1), device=x.device)
-    interpolates = alpha * x + (1 - alpha) * y
-    f_int = model(interpolates).sum()
-    grads = torch.autograd.grad(f_int, interpolates)[0]
-    slopes = grads.pow(2).sum(1).sqrt()
-    gp = torch.mean((slopes - 1) ** 2)
-    return gp
-
-
-def shuffle_code(code):
-    """Shuffle latent variables across the batch
-    
-    Args:
-        code: [batch_size, code_size]
-    """
-    code = code.clone()
-    shuffled = []
-    bsz, csz = code.size()
-    for i in range(csz):
-        idx = torch.randperm(bsz)
-        shuffled.append(code[idx][:, i])
-    return torch.stack(shuffled, dim=1)
