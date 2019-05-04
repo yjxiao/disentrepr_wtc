@@ -51,14 +51,9 @@ class ConvVAE(BaseModel):
         return cls(encoder, decoder, prior)
 
     def forward(self, samples):
-        images = samples['image']
-        posterior = self.encoder(images)
-        if self.training:
-            z = posterior.rsample()
-        else:
-            z = posterior.mean
+        posterior, z = self.encode(samples)
         prior = self.prior(z)
-        x = self.decoder(z)
+        x = self.decode(z)
         return {
             'x': x,
             'posterior': posterior,
@@ -66,7 +61,19 @@ class ConvVAE(BaseModel):
             'z': z
         }
 
+    def encode(self, samples):
+        images = samples['image']
+        posterior = self.encoder(images)
+        if self.training:
+            z = posterior.rsample()
+        else:
+            z = posterior.mean
+        return posterior, z
 
+    def decode(self, z):
+        return self.decoder(z)
+
+    
 class ConvEncoder(nn.Module):
     """Convolutional encoder for VAE
 
