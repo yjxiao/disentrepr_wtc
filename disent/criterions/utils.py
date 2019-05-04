@@ -5,7 +5,7 @@ def get_gradient_penalty(x, y, model):
     alpha = torch.rand((x.size(0), 1), device=x.device)
     interpolates = alpha * x + (1 - alpha) * y
     f_int = model(interpolates).sum()
-    grads = torch.autograd.grad(f_int, interpolates)[0]
+    grads = torch.autograd.grad(f_int, interpolates, create_graph=True)[0]
     slopes = grads.pow(2).sum(1).sqrt()
     gp = torch.mean((slopes - 1) ** 2)
     return gp
