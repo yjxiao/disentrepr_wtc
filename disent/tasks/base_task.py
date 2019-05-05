@@ -1,7 +1,10 @@
 import numpy as np
 
+import torch
+
 from disent.data import build_dataset, data_utils
 from disent.data import EpochBatchIterator
+from disent.generator import ImageGenerator
 
 
 class BaseTask(object):
@@ -26,6 +29,9 @@ class BaseTask(object):
         print('| {} {} examples'.format(
             self.args.dataset, len(self.dataset)))
 
+    def build_generator(self, args):
+        return ImageGenerator()
+    
     def get_batch_iterator(self, dataset, batch_size,
                            num_batches=None,
                            seed=1):
@@ -67,4 +73,6 @@ class BaseTask(object):
             batch_sampler=batch_sampler,
             seed=seed)
         
-        
+    def gen_step(self, generator, model, sample, modifications):
+        with torch.no_grad():
+            return generator.generate(model, sample, modifications)

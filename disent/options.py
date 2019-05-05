@@ -1,4 +1,5 @@
 import argparse
+from functools import partial
 
 import torch
 
@@ -62,7 +63,32 @@ def add_evaluation_args(parser):
                        help='path to save evaluation results')
     return group
 
-    
+
+def add_generation_args(parser):
+    group = parser.add_argument_group('Generation')
+    group.add_argument('--path', metavar='FILE', help='path to model file')
+    group.add_argument('--gen-batches', type=int, default=1, metavar='N',
+                       help='number of batches to generate')
+    group.add_argument('--gen-mode', type=str, metavar='MODE',
+                       choices=['standard', 'traversal'],
+                       help='generation mode')
+    group.add_argument('--traversal-range', type=eval_str_list,
+                       metavar='MIN_VAL,MAX_VAL',
+                       help='range of values to traverse')
+    group.add_argument('--traversal-step', type=float, default=1.,
+                       help='spacing between traversal points')
+    group.add_argument('--modify-dims', type=partial(eval_str_list, type=int),
+                       metavar='DIM1,DIM2,...,DIM_N',
+                       help='select code dims to modify')
+    group.add_argument('--save-dir', metavar='DIR', default='gen',
+                       help='path to save generated images')
+    group.add_argument('--save-format', type=str, default='gif',
+                       choices=['jpg', 'gif'],
+                       help='saving format of the images')
+
+    return group
+
+
 def add_model_args(parser):
     group = parser.add_argument_group('Model configuration')
     group.add_argument('--vae-arch', default='conv_vae', metavar='ARCH',
@@ -119,7 +145,14 @@ def get_evaluation_parser(default_task='vae'):
     add_evaluation_args(parser)
     return parser
 
-    
+
+def get_generation_parser(default_task='vae'):
+    parser = get_parser('Generation', default_task)
+    add_dataset_args(parser)
+    add_generation_args(parser)
+    return parser
+
+
 def get_training_parser(default_task='vae'):
     parser = get_parser('Trainer', default_task)
     add_dataset_args(parser, train=True)
