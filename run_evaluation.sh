@@ -1,4 +1,4 @@
-device=3
+device=0
 all_datasets="dsprites cars3d shapes3d"
 all_tasks="vae tc factor wtc mmd_tc wae"
 all_metrics="unsup mig factor"
@@ -76,6 +76,7 @@ do
      
 	for dataset in $datasets
 	do
+	    echo "| evaluating $task on $dataset ($metric)"
 	    for val in $values
 	    do
 		for d in /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam-$val/* ;
@@ -84,6 +85,7 @@ do
 			python evaluate.py \
 			       --device-id $device \
 		    	       --task $task \
+			       --dataset $dataset \
 		    	       --metric $metric \
 		    	       --path $d/checkpoint_last.pt \
 			       $args \

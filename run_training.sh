@@ -1,7 +1,6 @@
 device=3
 datasets=""
 task="vae"
-seeds="1 11 42 73 89"    # these are aribitrary
 
 while [ "$1" != "" ]; do
     case $1 in
@@ -11,10 +10,18 @@ while [ "$1" != "" ]; do
 	-t | --task )   shift
 			task=$1
 			;;
+	-s | --seed )   shift
+			seed=$1
+			;;
         * )             datasets+=" $1"
     esac
     shift
 done
+
+if [ "$seed" == "" ]; then
+    echo "| must specify a training seed"
+    exit 1
+fi
 
 if [ "$datasets" == "" ]; then
     datasets="dsprites cars3d shapes3d"
@@ -61,21 +68,19 @@ do
 	fi
 	for val in $values
 	do
-	    for seed in $seeds
-	    do
-		python train.py \
-		       --device-id $device \
-		       --no-validate \
-		       --no-epoch-checkpoints \
-		       --dataset $dataset \
-		       --task $task \
-		       --lr $lr \
-		       --max-update 300000 \
-		       --seed $seed \
-		       --$hparam $val \
-		       --save-dir /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam-$val/$seed \
-		       > logs/D-$dataset.T-$task.${hparam^^}-$val.S-$seed.log
-	    done
+	    python train.py \
+		   --device-id $device \
+		   --no-validate \
+		   --no-epoch-checkpoints \
+		   --dataset $dataset \
+		   --task $task \
+		   --lr $lr \
+		   --max-update 300000 \
+		   --seed $seed \
+		   --$hparam $val \
+		   --save-dir /mnt/bhd/yijunxiao/disent/checkpoints/$dataset/$task/$hparam-$val/$seed \
+		   > logs/D-$dataset.T-$task.${hparam^^}-$val.S-$seed.log
 	done
+	ntfy send "finished training $task on $dataset with seed $seed"
     done
 done
