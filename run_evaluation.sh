@@ -69,7 +69,7 @@ do
     for metric in $metrics
     do
 	if [ "$metric" == "factor" ]; then
-	    args="--train-batches 200 --eval-batches 100 --ve 200"
+	    args="--train-batches 10000 --eval-batches 5000 --ve 200"
 	else
 	    args="--eval-batches 200"
 	fi

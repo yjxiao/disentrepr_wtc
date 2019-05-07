@@ -13,7 +13,7 @@ if [[ ! -d "cars" ]]; then
   wget -O nips2015-analogy-data.tar.gz http://www.scottreed.info/files/nips2015-analogy-data.tar.gz
   tar xzf nips2015-analogy-data.tar.gz
   rm nips2015-analogy-data.tar.gz
-  mv data/cars .
+  mv data/cars ./cars3d
   rm -r data
 fi
 echo "Downloading cars completed!"

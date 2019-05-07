@@ -28,7 +28,7 @@ if [ "$datasets" == "" ]; then
 fi
 
 if [ "$task" == "all" ]; then
-    tasks="vae tc factor wtc mmd_tc"
+    tasks="vae tc factor wtc wae mmd_tc"
 else
     tasks="$task"
 fi
@@ -49,7 +49,7 @@ do
 		   values="10 20 40 80"
 		   ;;
 	"wtc" )    hparam="gamma"
-		   values="1 4 8 16 40"
+		   values="1 4 8 16"
 		   ;;
 	"mmd_tc" ) hparam="gamma"
 		   values="10 40 80 160"
@@ -84,3 +84,4 @@ do
 	ntfy send "finished training $task on $dataset with seed $seed"
     done
 done
+ntfy send "all done tasks ($tasks) on datasets ($datasets) with seed $seed"
