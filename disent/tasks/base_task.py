@@ -55,9 +55,7 @@ class BaseTask(object):
 
         result_indices = []
         for i in range(num_batches):
-            start = i * batch_size
-            end = start + batch_size
-            idx = indices[start:end]
+            idx = np.random.choice(indices, batch_size)
             # (batch_size, num_factors)
             factors = dataset.factors.numpy()[idx]
             factors[:, factor_index] = factors[0, factor_index]
