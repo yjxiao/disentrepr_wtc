@@ -10,7 +10,7 @@ from . import BaseMetric, register_metric
 
 @register_metric('factor')
 class FactorVAEScore(BaseMetric):
-    
+
     @staticmethod
     def add_args(parser):
         parser.add_argument(
@@ -36,6 +36,7 @@ class FactorVAEScore(BaseMetric):
             stats["eval_acc"] = 0.
             stats["num_active_dims"] = 0
             return stats
+        
         train_votes = _gather_votes(
             task, model, self.args.train_batches, self.args.batch_size,
             global_variances, active_dims, seed, self.cuda)
@@ -43,6 +44,7 @@ class FactorVAEScore(BaseMetric):
         other_index = np.arange(train_votes.shape[1])
         train_acc = np.sum(
             train_votes[classifier, other_index]) * 1. / np.sum(train_votes)
+        
         eval_votes = _gather_votes(
             task, model, self.args.eval_batches, self.args.batch_size,
             global_variances, active_dims, seed + task.dataset.num_factors, self.cuda)
@@ -50,13 +52,14 @@ class FactorVAEScore(BaseMetric):
             eval_votes[classifier, other_index]) * 1. / np.sum(eval_votes)
         stats['train_acc'] = train_acc
         stats['eval_acc'] = eval_acc
-        stats['num_active_dims'] = len(active_dims)  # this looks odd
+        stats['num_active_dims'] = sum(active_dims)
         return stats
 
         
 def _gather_votes(task, model, num_batches, batch_size,
                   global_variances, active_dims, seed, cuda):
     num_factors = task.dataset.num_factors
+    num_batches = int(num_batches // num_factors) + 1
     code_size = global_variances.shape[0]
     votes = np.zeros((num_factors, code_size), dtype=int)
     for factor_index in range(num_factors):
@@ -99,7 +102,7 @@ def _estimate_variances(task, model, num_batches, batch_size, seed, cuda):
     return np.var(code_samples, axis=0, ddof=1)
     
 
-def _prune_dims(variances, threshold=0.):
+def _prune_dims(variances, threshold=0.05):
     scale_z = np.sqrt(variances)
     return scale_z >= threshold
 

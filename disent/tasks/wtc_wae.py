@@ -23,7 +23,7 @@ class WTCWAETask(BaseTask):
                             help='weight to the wtc term')
         parser.add_argument('--gamma', default='1', type=eval_str_list,
                             help='weight to the dimwise distance term')
-        parser.add_argument('--lambda', default='8', type=eval_str_list,
+        parser.add_argument('--lambda', default='4', type=eval_str_list,
                             help='weight to the gradient penalty term')
         
     def build_criterion(self, args):
