@@ -26,15 +26,16 @@ class Cars3D(VisionDataset):
             # flatten to (24 x 4, 128, 128, 3)
             flattened_mesh = mesh.reshape((-1,) + mesh.shape[2:])
             rescaled_mesh = np.zeros((flattened_mesh.shape[0], 64, 64, 3))
-            for i in range(flattened_mesh.shape[0]):
-                pic = PIL.Image.fromarray(flattened_mesh[i, :, :, :])
+            for j in range(flattened_mesh.shape[0]):
+                pic = PIL.Image.fromarray(flattened_mesh[j, :, :, :])
                 pic.thumbnail((64, 64, 3), PIL.Image.ANTIALIAS)
-                rescaled_mesh[i, :, :, :] = np.array(pic)
+                rescaled_mesh[j, :, :, :] = np.array(pic)
             # resize to (24 x 4, 64, 64, 3) and rescale
             data_mesh = rescaled_mesh * 1. / 255
 
             factor_i = np.stack(
                 np.meshgrid([i], *factor_ranges, indexing='ij'), axis=-1)
+            
             factors[i] = factor_i.reshape((-1, 3))
             # transpose to (24 x 4, 3, 64, 64)
             images[i] = np.einsum("abcd->adbc", data_mesh)
