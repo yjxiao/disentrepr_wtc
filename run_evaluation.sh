@@ -1,7 +1,7 @@
 device=0
 all_datasets="dsprites cars3d shapes3d"
 all_tasks="vae tc factor wtc mmd_tc wae"
-all_metrics="unsup mig factor"
+all_metrics="unsup mig factor modularity"
 seed="1"    # these are aribitrary
 datasets=""
 task=""

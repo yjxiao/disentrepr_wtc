@@ -53,7 +53,7 @@ def main(args):
         if len(mods) == 0:
             # (1, B)
             num_images = batch_size
-            args.save_format = 'jpg'
+            args.save_format = 'jpeg'
             save_batch_images(batch['id'], batch_images[0], args)
         else:
             # (D, V, B)

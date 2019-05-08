@@ -21,7 +21,7 @@ class WAETask(BaseTask):
                             help='adversarial model architecture')
         parser.add_argument('--beta', default='1', type=eval_str_list,
                             help='weight to the kld term')
-        parser.add_argument('--lambda', default='8', type=eval_str_list,
+        parser.add_argument('--lambda', default='4', type=eval_str_list,
                             help='weight to the gradient penalty term')
         
     def build_criterion(self, args):
