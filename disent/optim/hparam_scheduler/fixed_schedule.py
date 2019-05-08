@@ -11,7 +11,7 @@ class FixedSchedule(BaseHParamScheduler):
         setattr(args, wu_attr, self.warmup_updates)
 
         if self.warmup_updates > 0:
-            self.warmup_factor = 1. / warmup_updates
+            self.warmup_factor = 1. / self.warmup_updates
         else:
             self.warmup_factor = 1
         self.step(0)

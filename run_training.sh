@@ -60,12 +60,6 @@ do
     for dataset in $datasets
     do
 	echo "| training $task on $dataset"
-	if [ "$dataset" == "cars3d" ]
-	then
-	    lr='1e-5'
-	else
-	    lr='1e-4'
-	fi
 	for val in $values
 	do
 	    python train.py \
@@ -74,7 +68,6 @@ do
 		   --no-epoch-checkpoints \
 		   --dataset $dataset \
 		   --task $task \
-		   --lr $lr \
 		   --max-update 300000 \
 		   --seed $seed \
 		   --$hparam $val \

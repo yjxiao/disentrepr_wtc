@@ -19,6 +19,7 @@ class Cars3D(VisionDataset):
         factor_ranges = [np.arange(v) for v in factor_dims]
 
         all_files = [x for x in os.listdir(self.root) if '.mat' in x]
+        assert len(all_files) == 183
         for i, filename in enumerate(all_files):
             # read data as size (24, 4, 128, 128, 3)
             with open(os.path.join(self.root, filename), 'rb') as f:
