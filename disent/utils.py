@@ -83,14 +83,14 @@ def load_model_state(filename, model):
 
     
 def save_state(filename, args, model_state_dict, optimizers,
-               lr_schedulers, hp_schedulers, num_updates,
+               lr_schedulers, hp_schedulers, num_iters, num_updates,
                optim_history=None, extra_state=None):
     if optim_history is None:
         optim_history = []
     if extra_state is None:
         extra_state = {}
 
-    optim_info = {'num_updates': num_updates}
+    optim_info = {'num_updates': num_updates, 'num_iters': num_iters}
     optim_state = {}
     for key in optimizers:
         optimizer = optimizers[key]

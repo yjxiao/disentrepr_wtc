@@ -96,6 +96,7 @@ def get_training_stats(trainer):
     stats['loss'] = trainer.get_meter('train_loss')
     stats['ups'] = trainer.get_meter('ups')
     stats['num_updates'] = trainer.get_num_updates()
+    stats['num_iters'] = trainer.get_num_iters()
     stats['lr'] = trainer.get_lr()
     stats['gnorm'] = trainer.get_meter('gnorm')
     stats['clip'] = trainer.get_meter('clip')
@@ -151,15 +152,16 @@ def save_checkpoint(args, trainer, epoch_iter, val_loss):
     epoch = epoch_iter.epoch
     end_of_epoch = epoch_iter.end_of_epoch()
     updates = trainer.get_num_updates()
+    iters = trainer.get_num_iters()
 
     checkpoint_conds = OrderedDict()
     checkpoint_conds['checkpoint{}.pt'.format(epoch)] = (
             end_of_epoch and not args.no_epoch_checkpoints and
             epoch % args.save_interval == 0
     )
-    checkpoint_conds['checkpoint_{}_{}.pt'.format(epoch, updates)] = (
+    checkpoint_conds['checkpoint_{}_{}.pt'.format(epoch, iters)] = (
             not end_of_epoch and args.save_interval_updates > 0 and
-            updates % args.save_interval_updates == 0
+            iters % args.save_interval_updates == 0
     )
     checkpoint_conds['checkpoint_best.pt'] = (
             val_loss is not None and
@@ -183,7 +185,7 @@ def save_checkpoint(args, trainer, epoch_iter, val_loss):
             trainer.save_checkpoint(cp, extra_state)
 
         print('| saved checkpoint {} (epoch {} @ {} updates)'.format(
-            checkpoints[0], epoch, updates))
+            checkpoints[0], epoch, iters))
 
     if not end_of_epoch and args.keep_interval_updates > 0:
         # remove old checkpoints; checkpoints are sorted in descending order
@@ -216,12 +218,12 @@ def load_checkpoint(args, trainer, epoch_iter):
             epoch_iter.load_state_dict(extra_state['train_iterator'])
 
             print('| loaded checkpoint {} (epoch {} @ {} updates)'.format(
-                checkpoint_path, epoch_iter.epoch, trainer.get_num_updates()))
+                checkpoint_path, epoch_iter.epoch, trainer.get_num_iters()))
 
             trainer.lr_step(epoch_iter.epoch)
-            trainer.lr_step_update(trainer.get_num_updates())
+            trainer.lr_step_update(trainer.get_num_iters())
             trainer.hparam_step(epoch_iter.epoch)
-            trainer.hparam_step_update(trainer.get_num_updates())
+            trainer.hparam_step_update(trainer.get_num_iters())
             if 'best' in extra_state:
                 save_checkpoint.best = extra_state['best']
         return True

@@ -115,6 +115,8 @@ def add_optimization_args(parser):
                        help='momentum factor')
     group.add_argument('--weight-decay', '--wd', default=0.0, type=float, metavar='WD',
                        help='weight decay')
+    group.add_argument('--iters-per-update', default=1, type=int, metavar='N',
+                       help='number of iterations per main model update')
     group.add_argument('--lr-scheduler', default='fixed',
                        choices=LR_SCHEDULER_REGISTRY.keys(),
                        help='Learning Rate Scheduler')

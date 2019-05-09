@@ -22,7 +22,12 @@ class Trainer(object):
 
         self._lr_schedulers = None
         self._hp_schedulers = None
-        self._num_updates = 0
+        self._num_updates = 0    # number of updates for the main model
+        self._num_iters = 0    # number of batches trained on
+        # update the main model every number of iterations
+        # normally this is 1.
+        self._iters_per_update = self.args.iters_per_update
+        
         self._optim_history = None
         self._optimizers = None
 
@@ -100,7 +105,7 @@ class Trainer(object):
         utils.save_state(
             filename, self.args, self.model.state_dict(),
             self.optimizers, self.lr_schedulers, self.hparam_schedulers,
-            self._num_updates, self._optim_history, extra_state)
+            self._num_iters, self._num_updates, self._optim_history, extra_state)
 
     def load_checkpoint(self, filename, reset_optimizers=False,
                         reset_lr_schedulers=False,
@@ -120,6 +125,7 @@ class Trainer(object):
                     lr_scheduler.load_state_dict(last_optim[key]['lr_scheduler_state'])
                 optimizer.load_state_dict(last_optim_state[key], optimizer_overrides)
 
+                self._num_iters = last_optim['num_iters']
                 self._num_updates = last_optim['num_updates']
 
             for hparam in self.hparam_schedulers:
@@ -156,6 +162,11 @@ class Trainer(object):
                 
             k = len(loss)
             for i, (comp, comp_loss) in enumerate(loss.items()):
+                if comp == 'main':
+                    if self._num_iters % self._iters_per_update == 0:
+                        self._num_updates += 1
+                    else:
+                        continue
                 optimizer = self.get_optimizer(comp)
                 optimizer.zero_grad()
                 retain_graph = i < k - 1
@@ -163,10 +174,10 @@ class Trainer(object):
                 grad_norm += optimizer.clip_grad_norm(self.args.clip_norm)
                 optimizer.step()
                 
-            self._num_updates += 1
+            self._num_iters += 1
 
-            self.lr_step_update(self._num_updates)
-            self.hparam_step_update(self._num_updates)
+            self.lr_step_update(self._num_iters)
+            self.hparam_step_update(self._num_iters)
 
             # update meters
             self.meters['ups'].update(1.)
@@ -255,6 +266,9 @@ class Trainer(object):
     def get_num_updates(self):
         return self._num_updates
 
+    def get_num_iters(self):
+        return self._num_iters
+
     def _prepare_sample(self, sample):
         if sample is None or len(sample) == 0:
             return None
@@ -263,7 +277,7 @@ class Trainer(object):
         return sample
 
     def _set_seed(self):
-        seed = self.args.seed + self.get_num_updates()
+        seed = self.args.seed + self.get_num_iters()
         torch.manual_seed(seed)
         if self.cuda:
             torch.cuda.manual_seed(seed)
