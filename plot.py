@@ -51,11 +51,7 @@ MAIN_METRIC = {
     'factor': 'eval_acc',
     'mig': 'avg_mig',
     'modularity': 'modularity',
-}
-METRIC_LIMITS = {
-    'factor': (0.5, 1.0),
-    'mig': (0, 0.4),
-    'modularity': (0.6, 1.0),
+    'recon': 'reconstruction',
 }
 COLORS = {
     'vae': '#e41a1c',
@@ -65,18 +61,24 @@ COLORS = {
     'wtc': '#ff7f00',
     'wtc_wae': '#ffff33',
 }
-
+MARKERS = {
+    'vae': 'o',
+    'tc': 'v',
+    'factor': '^',
+    'wae': 's',
+    'wtc': 'D',
+    'wtc_wae': 'P',
+}
 
 def main(args):
     print(args)
     os.makedirs(args.save_dir, exist_ok=True)
-    results = parse_evaluation_results(args)
-    ylim = METRIC_LIMITS[args.metric]
+    results = parse_evaluation_results(args.metric, args)
     # plot per task by hparams
     for task in args.tasks:
         savepath = os.path.join(
-            args.save_dir,
-            'M-{}.D-{}.T-{}.{}.pdf'.format(
+            args.save_dir, 
+            'DisentByHParam_M-{}_D-{}_T-{}_{}.pdf'.format(
                 args.metric, args.dataset,
                 task, args.plot_type
             )
@@ -90,13 +92,36 @@ def main(args):
     results = aggregate_task_results(results)
     savepath = os.path.join(
         args.save_dir,
-        'M-{}.D-{}.{}.pdf'.format(
+        'DisentByTask_M-{}_D-{}_{}.pdf'.format(
             args.metric, args.dataset, args.plot_type)
     )
     colors = [COLORS[task] for task in results]
     plot_and_save(results, colors, savepath, args.plot_type)
 
+    # plot against reconstruction
+    recons = parse_evaluation_results('recon', args, reduction='mean')
+    evals = parse_evaluation_results(args.metric, args, reduction='mean')
+    savepath = os.path.join(
+        args.save_dir,
+        'DisentVsRecon_M-{}_D-{}_scatter.pdf'.format(
+            args.metric, args.dataset)
+    )
+    plot_scatter_and_save(recons, evals, savepath)
 
+
+def plot_scatter_and_save(x, y, savepath):
+    plots = []
+    for task in x:
+        xs = np.concatenate(list(x[task].values()))
+        ys = np.concatenate(list(y[task].values()))
+        color = COLORS[task]
+        plots.append(plt.scatter(xs, ys, c=color, marker=MARKERS[task]))
+
+    plt.legend(plots, list(x.keys()), ncol=1, loc='lower right')
+    plt.savefig(savepath, bbox_inches='tight')
+    plt.close()
+    
+    
 def plot_and_save(results, colors, savepath, plot_type, ylim=None):
     """Note that results is a dictionary of lists. """
     xlabels, values = zip(*results.items())
@@ -166,7 +191,7 @@ def aggregate_task_results(results):
     return new_results
 
 
-def parse_evaluation_results(args):
+def parse_evaluation_results(metric, args, reduction=None):
     results = {}
     for task in args.tasks:
         assert task in TASKS, 'unrecognized task: ' + task
@@ -179,12 +204,16 @@ def parse_evaluation_results(args):
                 fpath = os.path.join(
                     args.input_dir,
                     FNAME_TEMPLATE.format(
-                        args.metric, args.dataset,
+                        metric, args.dataset,
                         task, hparam, val, seed
                     ))
-                val_results.extend(
-                    parse_file(fpath, args.metric)
-                )
+                vals = parse_file(fpath, metric)
+                if reduction is None:
+                    val_results.extend(vals)
+                elif reduction == 'mean':
+                    val_results.append(np.mean(vals))
+                else:
+                    raise ValueError("unsupported reduction: " + reduction)
             results[task][val] = val_results
     return results
 
