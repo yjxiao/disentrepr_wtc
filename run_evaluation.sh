@@ -1,7 +1,7 @@
 device=0
 all_datasets="dsprites cars3d shapes3d"
-all_tasks="vae tc factor wtc mmd_tc wae"
-all_metrics="unsup mig factor modularity"
+all_tasks="vae tc factor wtc wae wtc_wae"
+all_metrics="unsup mig factor modularity recon"
 seed="1"    # these are aribitrary
 datasets=""
 task=""
@@ -58,11 +58,11 @@ do
                    values="10 20 40 80"
                    ;;
         "wtc" )    hparam="gamma"
-                   values="1 4 8 16 40"
+                   values="1 4 8 16"
                    ;;
-        "mmd_tc" ) hparam="gamma"
-                   values="10 40 80 160"
-                   ;;
+        "wtc_wae" ) hparam="beta"
+                    values="1 4 8 16"
+                    ;;
         * )        exit 1
     esac
 

@@ -50,6 +50,7 @@ class FactorVAEScore(BaseMetric):
             global_variances, active_dims, seed + task.dataset.num_factors, self.cuda)
         eval_acc = np.sum(
             eval_votes[classifier, other_index]) * 1. / np.sum(eval_votes)
+
         stats['train_acc'] = train_acc
         stats['eval_acc'] = eval_acc
         stats['num_active_dims'] = sum(active_dims)

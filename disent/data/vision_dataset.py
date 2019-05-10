@@ -16,7 +16,7 @@ class VisionDataset(torch.utils.data.Dataset):
         self.shuffle = shuffle
         self._load_data()
         self._split_indices = None
-        self._split_train_test()
+        self._split_train_test(42)    # arbitrary seed to control split
         self._ft2idx = None    # factor to idx mapping
         
     def _load_data(self):
@@ -30,7 +30,8 @@ class VisionDataset(torch.utils.data.Dataset):
             for idx, factor in enumerate(self.factors):
                 self._ft2idx[tuple(factor.numpy())] = idx
 
-    def _split_train_test(self):
+    def _split_train_test(self, seed):
+        np.random.seed(seed)
         if self._split_indices is None:
             indices = np.random.permutation(len(self))
             num_test = int(len(self) * 0.1)
