@@ -34,9 +34,14 @@ class WAELoss(_Loss):
         logging_output['div'] = div.item()
         
         # Adv loss
-        gp = get_gradient_penalty(z, z_prior, model['adversarial'])
+        if model.training:
+            gp = get_gradient_penalty(z, z_prior, model['adversarial'])
+            logging_output['grad_penalty'] = gp.item()
+        else:
+            gp = 0
+            logging_output['grad_penalty'] = 0
         adv_loss = - div
         logging_output['critic_loss'] = adv_loss.item()
-        logging_output['grad_penalty'] = gp.item()
+        
 
         return (rec, div, adv_loss, gp), batch_size, logging_output
