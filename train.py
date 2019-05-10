@@ -33,9 +33,14 @@ def main(args):
     # build trainer
     trainer = Trainer(args, task, model, criterion)
 
+    if args.no_validate:
+        train_split = None
+    else:
+        train_split = 'train'
     epoch_iter = task.get_batch_iterator(
         dataset=task.dataset,
         batch_size=args.batch_size,
+        split=train_split,
         seed=args.seed)
 
     if not load_checkpoint(args, trainer, epoch_iter):
@@ -52,7 +57,7 @@ def main(args):
         train(args, trainer, task, epoch_iter)
         
         if epoch_iter.epoch % args.validate_interval == 0 and not args.no_validate:
-            valid_loss = validate(args, trainer, task, epoch_iter, 'valid')
+            valid_loss = validate(args, trainer, task, epoch_iter, 'test')
 
         trainer.lr_step(epoch_iter.epoch, valid_loss)
         lr = trainer.get_lr()
@@ -112,6 +117,7 @@ def validate(args, trainer, task, epoch_iter, split):
     itr = task.get_batch_iterator(
         dataset=task.dataset,
         batch_size=args.batch_size,
+        split=split,
         seed=args.seed).next_epoch_itr(shuffle=False)
 
     progress = progress_bar.build_progress_bar(
@@ -130,7 +136,7 @@ def validate(args, trainer, task, epoch_iter, split):
     stats = get_valid_stats(trainer)
     stats['bsz'] = args.batch_size
     progress.print(stats)
-    return stats['valid_loss']
+    return stats['loss'].avg
 
 
 def get_valid_stats(trainer):
@@ -138,7 +144,7 @@ def get_valid_stats(trainer):
     stats['loss'] = trainer.get_meter('valid_loss')
     stats['num_updates'] = trainer.get_num_updates()
     for comp in trainer.criterion.loss_components:
-        stats[comp] = trainer.get_meter('train_' + comp)
+        stats[comp] = trainer.get_meter('valid_' + comp)
     if hasattr(save_checkpoint, 'best'):
         stats['best_loss'] = min(save_checkpoint.best, stats['loss'].avg)
     return stats

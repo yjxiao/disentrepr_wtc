@@ -15,6 +15,8 @@ class VisionDataset(torch.utils.data.Dataset):
         self.root = root
         self.shuffle = shuffle
         self._load_data()
+        self._split_indices = None
+        self._split_train_test()
         self._ft2idx = None    # factor to idx mapping
         
     def _load_data(self):
@@ -27,7 +29,17 @@ class VisionDataset(torch.utils.data.Dataset):
             self._ft2idx = np.zeros(self.factor_dims, dtype=int)
             for idx, factor in enumerate(self.factors):
                 self._ft2idx[tuple(factor.numpy())] = idx
-    
+
+    def _split_train_test(self):
+        if self._split_indices is None:
+            indices = np.random.permutation(len(self))
+            num_test = int(len(self) * 0.1)
+            splits = {
+                'train': indices[num_test:],
+                'test': indices[:num_test],
+            }
+            self._split_indices = splits
+        
     def __getitem__(self, index):
         raise NotImplementedError
 
@@ -42,11 +54,13 @@ class VisionDataset(torch.utils.data.Dataset):
     def num_factors(self):
         raise NotImplementedError
     
-    def ordered_indices(self):
-        if self.shuffle:
-            indices = np.random.permutation(len(self))
-        else:
+    def ordered_indices(self, split=None):
+        if split is None:
             indices = np.arange(len(self))
+        else:
+            indices = self._split_indices[split]
+        if self.shuffle:
+            indices = np.random.permutation(indices)
         return indices
 
     def indices_from_factors(self, factors):
