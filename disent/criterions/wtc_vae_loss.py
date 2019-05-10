@@ -40,9 +40,13 @@ class WTCVAELoss(_Loss):
         logging_output['wtc'] = wtc.item()
         
         # Adv loss
-        gp = get_gradient_penalty(z, shuffled_z, model['adversarial'])
+        if model.training:
+            gp = get_gradient_penalty(z, shuffled_z, model['adversarial'])
+            logging_output['gradient_penalty'] = gp.item()
+        else:
+            gp = 0
+            logging_output['gradient_penalty'] = 0
         adv_loss = - wtc
         logging_output['critic_loss'] = adv_loss.item()
-        logging_output['gradient_penalty'] = gp.item()
 
         return (rec, kld, wtc, adv_loss, gp), batch_size, logging_output
