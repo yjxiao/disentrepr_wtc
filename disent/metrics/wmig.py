@@ -41,6 +41,8 @@ class WassersteinMutualInformationGap(BaseMetric):
 
         # (code_size, eval_batches x batch_size)
         zs = np.transpose(np.concatenate(zs, axis=0))
+        # normalize z to have scale 1
+        zs /= zs.max(1, keepdims=True) - zs.min(1, keepdims=True)
         np.random.seed(seed)
         shuffled_zs = [np.random.permutation(z) for z in zs]
         # (num_factors, eval_batches x batch_size)
