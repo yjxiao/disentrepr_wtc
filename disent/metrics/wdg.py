@@ -9,8 +9,8 @@ from disent.models import BaseModel
 from . import BaseMetric, register_metric
 
 
-@register_metric('wmig')
-class WassersteinMutualInformationGap(BaseMetric):
+@register_metric('wdg')
+class WassersteinDependencyGap(BaseMetric):
     
     @staticmethod
     def add_args(parser):
