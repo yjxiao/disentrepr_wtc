@@ -41,14 +41,20 @@ class WTCWAELoss(_Loss):
         logging_output['dim_div'] = div.item()
         
         # Adv loss
-        gp1 = get_gradient_penalty(z, z_shuffled, model['adv1'])
-        gp2 = get_gradient_penalty(z_shuffled, z_prior, model['adv2'])
+        if model.training:
+            gp1 = get_gradient_penalty(z, z_shuffled, model['adv1'])
+            gp2 = get_gradient_penalty(z_shuffled, z_prior, model['adv2'])
+            logging_output['gp1'] = gp1.item()
+            logging_output['gp2'] = gp2.item()
+        else:
+            gp1 = 0
+            gp2 = 0
+            logging_output['gp1'] = 0
+            logging_output['gp2'] = 0
 
         critic1 = - wtc
         critic2 = - div
         logging_output['critic1'] = critic1.item()
         logging_output['critic2'] = critic2.item()        
-        logging_output['gp1'] = gp1.item()
-        logging_output['gp2'] = gp2.item()        
 
         return (rec, wtc, div, critic1, critic2, gp1, gp2), batch_size, logging_output

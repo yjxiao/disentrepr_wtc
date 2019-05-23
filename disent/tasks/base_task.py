@@ -34,9 +34,10 @@ class BaseTask(object):
     
     def get_batch_iterator(self, dataset, batch_size,
                            num_batches=None,
+                           split=None,
                            seed=1):
         with data_utils.numpy_seed(seed):
-            indices = dataset.ordered_indices()
+            indices = dataset.ordered_indices(split)
 
         batch_sampler = data_utils.batch_sampler(
             indices, batch_size=batch_size, num_batches=num_batches)
